@@ -1,0 +1,58 @@
+--- a/utils/python/eeprom/eeprom.py
++++ b/utils/python/eeprom/eeprom.py
+@@ -296,22 +296,15 @@ class EEPRom:
+             offset = 0
+             data = []
+             
+-            # Clean the eeprom internal counter
+-            bus.write_byte(i2c_address, 0x0)
+-            
+             while offset < self.SFP_EEPROM_SIZE:
+                 blk_off = offset & self.SFP_EEPROM_PAGE_MASK
+                 _len = self.SFP_EEPROM_SIZE - offset
+-                maxlen = self.SFP_EEPROM_PAGE_SIZE - (blk_off & self.SFP_EEPROM_PAGE_MASK)
+-                if _len > maxlen:
+-                    _len = maxlen
+-
+-                for i in range(_len):
+-                    res = bus.read_byte(i2c_address)
+-                    data.append(res)
+ 
+-                offset = offset + _len    
+-                
++                new_data = bus.read_i2c_block_data(i2c_address, offset, _len)
++                data.extend(new_data[:_len] if _len < len(new_data) else new_data)
++
++                offset += len(new_data)
++
+             data_base = 0
+             content = {}
+             for j in range(len(DATA_INFO.SFP["list"])):
+@@ -349,22 +342,15 @@ class EEPRom:
+             offset = 0
+             data = []
+             
+-            # Clean the eeprom internal counter 
+-            bus.write_byte(i2c_address, 0x0)
+-            
+             while offset < self.QSFP_EEPROM_SIZE:
+                 blk_off = offset & self.QSFP_EEPROM_PAGE_MASK
+                 _len = self.QSFP_EEPROM_SIZE - offset
+-                maxlen = self.QSFP_EEPROM_PAGE_SIZE - (blk_off & self.QSFP_EEPROM_PAGE_MASK)
+-                if _len > maxlen:
+-                    _len = maxlen
+-
+-                for i in range(_len):
+-                    res = bus.read_byte(i2c_address)
+-                    data.append(res)
+ 
+-                offset = offset + _len
+-            
++                new_data = bus.read_i2c_block_data(i2c_address, offset)
++                data.extend(new_data[:_len] if _len < len(new_data) else new_data)
++
++                offset += len(new_data)
++
+             data_base = 0
+             content = {}
+             for j in range(len(DATA_INFO.QSFP["list"])):

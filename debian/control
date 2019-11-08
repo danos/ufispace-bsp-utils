@@ -1,0 +1,49 @@
+Source: ufispace-bsp-utils
+Section: contrib/net
+Priority: optional
+Maintainer: Vyatta Package Maintainers <DL-vyatta-help@att.com>
+Build-Depends: debhelper (>=9),
+	       debhelper (>= 9.20160709) | dh-systemd (>= 1.5),
+	       dh-python,
+	       libpci-dev,
+	       libusb-1.0-0-dev,
+	       libusb-dev,
+	       python3,
+	       python3-all,
+	       python3-portio,
+	       python3-setuptools,
+	       python3-smbus,
+	       python3-serial,
+	       quilt,
+Standards-Version: 3.9.8
+X-Python3-Version: >= 3.3
+
+Package: python3-ufispace-bsp-utils
+Section: contrib/python
+Architecture: all
+Depends: ${misc:Depends},
+	 ${python3:Depends},
+Provides: ${python3:Provides},
+          ufispace-dump-sfp-eeprom-enhanced,
+          ufispace-set-dpll-op-mode,
+XB-Python-Version: ${python3:Versions}
+Description: Python Ufi Space board support package
+ The python Ufi Space board support package for the D2SIAD platform.
+
+Package: python3-ufispace-bsp-sfp-helper
+Architecture: all
+Depends: ${misc:Depends}, ${python3:Depends},
+	  python3-ufispace-bsp-utils, ufispace-linux-modules,
+	  python3-vyatta-platform-sfp (>= 1.0.2),
+Description: Ufi Space board support package SFP helper library
+ A package providing a shim layer exposing a common API to the
+ underlying BSP operations for the purposes of managing SFPs and
+ getting notifications on changes.
+
+Package: ufispace-stat-led-control
+Architecture: all
+Depends: ${misc:Depends},
+	 ${python3:Depends},
+	 python3-ufispace-bsp-utils,
+Description: Package to control the STAT led
+ The Ufi STAT led control support package for the D2SIAD platform.

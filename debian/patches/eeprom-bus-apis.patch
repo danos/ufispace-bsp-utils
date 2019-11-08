@@ -1,0 +1,71 @@
+--- a/utils/python/eeprom/eeprom.py
++++ b/utils/python/eeprom/eeprom.py
+@@ -220,6 +220,28 @@ class EEPRom:
+             bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, 0x0)
+         bus.close()
+ 
++    def get_sfp_bus(self, port_num):
++        mux = self._get_sfp_mux(port_num)
++        mux_chanl = self._get_sfp_mux_channel(port_num)
++
++        return self._get_sfp_qsfp_bus(mux, mux_chanl)
++
++    def close_sfp_bus(self, port_num, bus):
++        mux = self._get_sfp_mux(port_num)
++
++        self._close_sfp_qsfp_bus(bus, mux)
++
++    def get_qsfp_bus(self, port_num):
++        mux = "9546_QSFP"
++        mux_chanl = self._get_qsfp_mux_channel(port_num)
++
++        return self._get_sfp_qsfp_bus(mux, mux_chanl)
++
++    def close_qsfp_bus(self, port_num, bus):
++        mux = "9546_QSFP"
++
++        self._close_sfp_qsfp_bus(bus, mux)
++
+     def dump_cpu_eeprom(self):
+         bus = None
+         try:
+@@ -269,11 +291,7 @@ class EEPRom:
+             elif page == "A2":
+                 i2c_address = self.I2C_ADDR_EEPROM_SFP_A2
+             
+-            # Enable the channel by port location
+-            mux = self._get_sfp_mux(port_num)
+-            mux_chanl = self._get_sfp_mux_channel(port_num)
+-
+-            bus = self._get_sfp_qsfp_bus(mux, mux_chanl)
++            bus = self.get_sfp_bus(port_num)
+ 
+             offset = 0
+             data = []
+@@ -316,7 +334,7 @@ class EEPRom:
+             raise
+         finally:         
+             if bus != None:
+-                self._close_sfp_qsfp_bus(bus, mux)
++                self.close_sfp_bus(port_num, bus)
+ 
+     def dump_qsfp_eeprom(self, port_num, page = None):
+         bus = None
+@@ -326,10 +344,7 @@ class EEPRom:
+             elif page == "A2":
+                 i2c_address = self.I2C_ADDR_EEPROM_QSFP_A2
+             
+-            # Enable the channel by port location
+-            mux = "9546_QSFP"
+-            mux_chanl = self._get_qsfp_mux_channel(port_num)
+-            bus = self._get_sfp_qsfp_bus(mux, mux_chanl)
++            bus = self.get_qsfp_bus(port_num)
+ 
+             offset = 0
+             data = []
+@@ -376,4 +391,4 @@ class EEPRom:
+             raise
+         finally:
+             if bus != None:
+-                self._close_sfp_qsfp_bus(bus, mux)
++                self.close_qsfp_bus(port_num, bus)

@@ -1,0 +1,8 @@
+fix-build-dependencies.patch
+atomic-i2c-access.patch
+eeprom-bus-apis.patch
+dont-write-to-eeprom.patch
+fix-sfp-presence.patch
+fix-qsfp-laser.patch
+eeprom-page-access.patch
+fix-rov-access.patch

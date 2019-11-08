@@ -1,0 +1,75 @@
+--- a/utils/python/eeprom/eeprom.py
++++ b/utils/python/eeprom/eeprom.py
+@@ -131,8 +131,13 @@ class EEPRom:
+     QSFP_EEPROM_TX_DISABLE = 0x56
+     QSFP_EEPROM_TX_DISABLE_MASK = 0x0F
+     QSFP_EEPROM_TX_ENABLE_MASK = 0x00
++    QSFP_EEPROM_PAGE_SELECT = 0x7F
++    QSFP_EEPROM_UPPER_PAGE_00 = 0x0
++    QSFP_EEPROM_UPPER_PAGE_01 = 0x1
++    QSFP_EEPROM_UPPER_PAGE_02 = 0x2
++    QSFP_EEPROM_UPPER_PAGE_03 = 0x3
++    QSFP_EEPROM_LOWER_PAGE_SIZE = 128
+ 
+-    
+     def __init__(self):
+         log = Logger(__name__)
+         self.logger = log.getLogger()
+@@ -347,16 +352,25 @@ class EEPRom:
+     def dump_qsfp_eeprom(self, port_num, page = None):
+         bus = None
+         try:
+-            if page == None or page == "A0":
+-                i2c_address = self.I2C_ADDR_EEPROM_QSFP_A0
+-            elif page == "A2":
+-                i2c_address = self.I2C_ADDR_EEPROM_QSFP_A2
+-            
++            i2c_address = self.I2C_ADDR_EEPROM_QSFP_A0
+             bus = self.get_qsfp_bus(port_num)
+ 
+             offset = 0
+             data = []
+             
++            # Write page selection to page select byte
++            if page == 0:
++                bus.write_byte_data(i2c_address, self.QSFP_EEPROM_PAGE_SELECT, self.QSFP_EEPROM_UPPER_PAGE_00)
++            elif page == 1:
++                bus.write_byte_data(i2c_address, self.QSFP_EEPROM_PAGE_SELECT, self.QSFP_EEPROM_UPPER_PAGE_01)
++                offset = self.QSFP_EEPROM_LOWER_PAGE_SIZE
++            elif page == 2:
++                bus.write_byte_data(i2c_address, self.QSFP_EEPROM_PAGE_SELECT, self.QSFP_EEPROM_UPPER_PAGE_02)
++                offset = self.QSFP_EEPROM_LOWER_PAGE_SIZE
++            elif page == 3:
++                bus.write_byte_data(i2c_address, self.QSFP_EEPROM_PAGE_SELECT, self.QSFP_EEPROM_UPPER_PAGE_03)
++                offset = self.QSFP_EEPROM_LOWER_PAGE_SIZE
++
+             while offset < self.QSFP_EEPROM_SIZE:
+                 blk_off = offset & self.QSFP_EEPROM_PAGE_MASK
+                 _len = self.QSFP_EEPROM_SIZE - offset
+@@ -366,26 +380,6 @@ class EEPRom:
+ 
+                 offset += len(new_data)
+ 
+-            data_base = 0
+-            content = {}
+-            for j in range(len(DATA_INFO.QSFP["list"])):
+-                
+-                data_str = []
+-                data_len = DATA_INFO.QSFP["list"][j][1]
+-                data_type = DATA_INFO.QSFP["list"][j][2]
+-                for k in range(data_len):
+-                    data_str.append(data[data_base+k])
+-                
+-                if ("Low_Memory" not in DATA_INFO.QSFP["list"][j][0]) and \
+-                   ("Page_Sel" not in DATA_INFO.QSFP["list"][j][0]) and \
+-                   ("Vendor_Specific" not in DATA_INFO.QSFP["list"][j][0]) and \
+-                   ("dev_tech" not in DATA_INFO.QSFP["list"][j][0]) and \
+-                   ("Ext_Transceiver" not in DATA_INFO.QSFP["list"][j][0]) and \
+-                   ("Max_case_temp" not in DATA_INFO.QSFP["list"][j][0]):                    
+-                   content.update({DATA_INFO.QSFP["list"][j][0]: self._data_transfer(data_len, data_type, data_str)})
+-            
+-                data_base = data_base + data_len
+-
+             return data
+         except Exception as e:
+             self.logger.error("Dump QSFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))

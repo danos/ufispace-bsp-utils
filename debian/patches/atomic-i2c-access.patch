@@ -1,0 +1,1296 @@
+--- a/utils/python/eeprom/eeprom.py
++++ b/utils/python/eeprom/eeprom.py
+@@ -131,7 +131,7 @@
+     def __init__(self):
+         log = Logger(__name__)
+         self.logger = log.getLogger()
+-        self.i2c_mux = I2CMux()
++        self.i2c_mux = I2CMux().MUXs
+         self.ioexp = IOExpander()
+         self.cpld = CPLD()
+         
+@@ -152,42 +152,76 @@
+         return output
+ 
+     def _get_sfp_mux_channel(self, port_num):
+-        ch = port_num % 8
+         # Normal channel conversion
+-        chanl = 0x1 << ch
+-
+-        return chanl
++        return port_num % 8
+         
+     def _get_qsfp_mux_channel(self, port_num):
+         ch = port_num % 8
+         # Customize channel
+         if ch == 0:
+-            chanl = 0x08
++            chanl = 3
+         elif ch == 1:
+-            chanl = 0x04
++            chanl = 2
+         else:
+-            chanl = 0x0
++            chanl = 0
+ 
+         return chanl
+             
+-    def _get_sfp_mux_addr(self, port_num):
++    def _get_sfp_mux(self, port_num):
+         port_grp = int(port_num / 8)
+ 
+         if port_grp == 0:      # P0~P7
+-            mux = self.I2C_ADDR_SFP_MUX_9548_1
++            mux = "9548_SFP1"
+         elif port_grp == 1:    # P8~P15
+-            mux = self.I2C_ADDR_SFP_MUX_9548_2
++            mux = "9548_SFP2"
+         elif port_grp == 2:    # P16~P23
+-            mux = self.I2C_ADDR_SFP_MUX_9548_3
++            mux = "9548_SFP3"
+         else:                  # P24~P27
+-            mux = self.I2C_ADDR_SFP_MUX_9548_4
++            mux = "9548_SFP4"
+ 
+         return mux
+ 
+     def init(self):
+         pass
+ 
++    def _get_sfp_qsfp_bus(self, mux, channel):
++        if self.i2c_mux[mux].ch_bus != None:
++            bus_num = self.i2c_mux[mux].ch_bus[channel]
++            return SMBus(bus_num)
++        else:
++            bus = SMBus(0)
++            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, self.SFP_QSFP_CHANEL)
++            if mux == "9548_SFP1":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_1
++            elif mux == "9548_SFP2":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_2
++            elif mux == "9548_SFP3":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_3
++            elif mux == "9548_SFP4":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_4
++            else: # "9546_QSFP"
++                mux_addr = self.I2C_ADDR_QSFP_MUX_9546
++            bus.write_byte_data(mux_addr, 0x0, 1 << channel)
++            return bus
++
++    def _close_sfp_qsfp_bus(self, bus, mux):
++        if self.i2c_mux[mux].ch_bus is None:
++            if mux == "9548_SFP1":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_1
++            elif mux == "9548_SFP2":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_2
++            elif mux == "9548_SFP3":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_3
++            elif mux == "9548_SFP4":
++                mux_addr = self.I2C_ADDR_SFP_MUX_9548_4
++            else: # "9546_QSFP"
++                mux_addr = self.I2C_ADDR_QSFP_MUX_9546
++            bus.write_byte_data(mux_addr, 0x0, 0x0)
++            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, 0x0)
++        bus.close()
++
+     def dump_cpu_eeprom(self):
++        bus = None
+         try:
+             # Get the bus number of sysfs
+             bus_num = self.I2C_BUS_CPU_EEPROM
+@@ -228,21 +262,18 @@
+                 bus.close()
+ 
+     def dump_sfp_eeprom(self, port_num, page = None):
++        bus = None
+         try:
+-            bus = SMBus(0)
+-
+             if page == None or page == "A0":
+                 i2c_address = self.I2C_ADDR_EEPROM_SFP_A0
+             elif page == "A2":
+                 i2c_address = self.I2C_ADDR_EEPROM_SFP_A2
+             
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, self.SFP_QSFP_CHANEL)
+-                        
+             # Enable the channel by port location
+-            mux_addr = self._get_sfp_mux_addr(port_num)
++            mux = self._get_sfp_mux(port_num)
+             mux_chanl = self._get_sfp_mux_channel(port_num)
+-            bus.write_byte_data(mux_addr, 0x0, mux_chanl)
++
++            bus = self._get_sfp_qsfp_bus(mux, mux_chanl)
+ 
+             offset = 0
+             data = []
+@@ -284,32 +315,22 @@
+             self.logger.error("Dump SFP+ port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+             raise
+         finally:         
+-            # Disable the channel by port location
+-            bus.write_byte_data(mux_addr, 0x0, 0x0)
+-            
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-            
+             if bus != None:
+-                bus.close()
++                self._close_sfp_qsfp_bus(bus, mux)
+ 
+     def dump_qsfp_eeprom(self, port_num, page = None):
++        bus = None
+         try:
+-            bus = SMBus(0)
+-
+             if page == None or page == "A0":
+                 i2c_address = self.I2C_ADDR_EEPROM_QSFP_A0
+             elif page == "A2":
+                 i2c_address = self.I2C_ADDR_EEPROM_QSFP_A2
+             
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, self.SFP_QSFP_CHANEL)
+-                        
+             # Enable the channel by port location
+-            mux_addr = self.I2C_ADDR_QSFP_MUX_9546
++            mux = "9546_QSFP"
+             mux_chanl = self._get_qsfp_mux_channel(port_num)
+-            bus.write_byte_data(mux_addr, 0x0, mux_chanl)
+-               
++            bus = self._get_sfp_qsfp_bus(mux, mux_chanl)
++
+             offset = 0
+             data = []
+             
+@@ -354,11 +375,5 @@
+             self.logger.error("Dump QSFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+             raise
+         finally:
+-            # Disable the channel by port location
+-            bus.write_byte_data(mux_addr, 0x0, 0x0)
+-            
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-            
+             if bus != None:
+-                bus.close()
++                self._close_sfp_qsfp_bus(bus, mux)
+--- a/utils/python/gpio/ioexp.py
++++ b/utils/python/gpio/ioexp.py
+@@ -21,15 +21,42 @@
+ 
+ from common.logger import Logger
+ from smbus import SMBus
++from i2c_mux.i2c_mux import I2CMux
+ 
+ class PCA953x:
++    I2C_ADDR_9546_ROOT = 0x76
++    I2C_ADDR_9546_ROOT1 = 0x75
+ 
+-    def __init__(self, dev_info, bus_num):
++    def __init__(self, dev_info, i2c_mux):
+         self.name = dev_info["name"]
+         self.address = dev_info["address"]
+-        self.bus_num = bus_num
+         self.pins = dev_info["pins"]
+         self.init_cfg = dev_info["init_cfg"]
++        self.i2c_mux = i2c_mux.MUXs
++        self.parent = dev_info["parent"]
++
++    def get_channel_bus(self, channel):
++        if self.parent is None:
++            return SMBus(0)
++        else:
++            if self.i2c_mux[self.parent].ch_bus != None:
++                bus_num = self.i2c_mux[self.parent].ch_bus[channel]
++                return SMBus(bus_num)
++            else:
++                bus = SMBus(0)
++                if self.parent == "9546_ROOT":
++                    bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 1 << channel)
++                else:
++                    bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 1 << channel)
++                return bus
++
++    def close_channel_bus(self, bus):
++        if not self.parent is None and self.i2c_mux[self.parent].ch_bus is None:
++            if self.parent == "9546_ROOT":
++                bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)
++            else:
++                bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 0x0)
++        bus.close()
+ 
+ class PCA9535(PCA953x):
+ 
+@@ -52,9 +79,6 @@
+ 
+ class IOExpander:
+     
+-    I2C_ADDR_9546_ROOT = 0x76
+-    I2C_ADDR_9546_ROOT1 = 0x75
+-
+     I2C_ADDR_TPS53667 = 0x61
+     ROV_List = ['N/A' , '1.00' , '0.95' , 'N/A' , '1.04']
+     TPS53667_voltage = [
+@@ -101,7 +125,7 @@
+             "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
+         },
+         "9535_SFP1": {
+-            "name": "pca9535_TX_DIS_1", "address": 0x22, "parent": "9546_ROOT", "channel": 0x1, "pins": 16,
++            "name": "pca9535_TX_DIS_1", "address": 0x22, "parent": "9546_ROOT", "channel": 0, "pins": 16,
+             "port_idx": {
+                 "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
+                 "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
+@@ -128,7 +152,7 @@
+             "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0x0, "output_port_1": 0x0 
+         },
+         "9535_SFP2": {
+-            "name": "pca9535_TX_DIS_2", "address": 0x24, "parent": "9546_ROOT", "channel": 0x1, "pins": 16,
++            "name": "pca9535_TX_DIS_2", "address": 0x24, "parent": "9546_ROOT", "channel": 0, "pins": 16,
+             "port_idx": {
+                 "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
+                 "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
+@@ -154,7 +178,7 @@
+             "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0x0, "output_port_1": 0x0
+         },
+         "9535_QSFP": {
+-            "name": "pca9535_QSFP", "address": 0x21, "parent": "9546_ROOT", "channel": 0x1, "pins": 16,
++            "name": "pca9535_QSFP", "address": 0x21, "parent": "9546_ROOT", "channel": 0, "pins": 16,
+             "init_cfg": [
+                 {"gpio": GPIO_BASE-48, "direction": "out", "value": 0},  # gpio463 IO_1.7 NI
+                 {"gpio": GPIO_BASE-49, "direction": "out", "value": 0},  # gpio462 IO_1.6 NI
+@@ -176,7 +200,7 @@
+             "config_0": 0x33, "config_1": 0x00, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0x0, "output_port_1": 0x30
+         },
+         "9535_SFP3": {
+-            "name": "pca9535_TX_FLT_1", "address": 0x26, "parent": "9546_ROOT", "channel": 0x2, "pins": 16,
++            "name": "pca9535_TX_FLT_1", "address": 0x26, "parent": "9546_ROOT", "channel": 1, "pins": 16,
+             "port_idx": {
+                 "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
+                 "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
+@@ -203,7 +227,7 @@
+             "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
+         },
+         "9535_SFP4": {
+-            "name": "pca9535_TX_FLT_2", "address": 0x27, "parent": "9546_ROOT", "channel": 0x2, "pins": 16,
++            "name": "pca9535_TX_FLT_2", "address": 0x27, "parent": "9546_ROOT", "channel": 1, "pins": 16,
+             "port_idx": {
+                 "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
+                 "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
+@@ -229,7 +253,7 @@
+             "config_0": 0xff, "config_1": 0xf0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xf0
+         },
+         "9535_SFP5": {
+-            "name": "pca9535_RATE_SEL_1", "address": 0x25, "parent": "9546_ROOT", "channel": 0x2, "pins": 16,
++            "name": "pca9535_RATE_SEL_1", "address": 0x25, "parent": "9546_ROOT", "channel": 1, "pins": 16,
+             "port_idx": {
+                 "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
+                 "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
+@@ -256,7 +280,7 @@
+             "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
+         },
+         "9535_SFP6": {
+-            "name": "pca9535_RATE_SEL_2", "address": 0x23, "parent": "9546_ROOT", "channel": 0x2, "pins": 16,
++            "name": "pca9535_RATE_SEL_2", "address": 0x23, "parent": "9546_ROOT", "channel": 1, "pins": 16,
+             "port_idx": {
+                 "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
+                 "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
+@@ -282,7 +306,7 @@
+             "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
+         },
+         "9535_SFP7": {
+-            "name": "pca9535_ABS_1", "address": 0x20, "parent": "9546_ROOT", "channel": 0x4, "pins": 16,
++            "name": "pca9535_ABS_1", "address": 0x20, "parent": "9546_ROOT", "channel": 2, "pins": 16,
+             "port_idx": {
+                 "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
+                 "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
+@@ -309,7 +333,7 @@
+             "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
+         },
+         "9535_SFP8": {
+-            "name": "pca9535_ABS_2", "address": 0x22, "parent": "9546_ROOT", "channel": 0x4, "pins": 16,
++            "name": "pca9535_ABS_2", "address": 0x22, "parent": "9546_ROOT", "channel": 2, "pins": 16,
+             "port_idx": {
+                 "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
+                 "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
+@@ -335,7 +359,7 @@
+             "config_0": 0xff, "config_1": 0xf0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xf0
+         },
+         "9535_SFP9": {
+-            "name": "pca9535_RX_LOS_1", "address": 0x21, "parent": "9546_ROOT", "channel": 0x4, "pins": 16,
++            "name": "pca9535_RX_LOS_1", "address": 0x21, "parent": "9546_ROOT", "channel": 2, "pins": 16,
+             "port_idx": {
+                 "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
+                 "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
+@@ -362,7 +386,7 @@
+             "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
+         },
+         "9535_SFP10": {
+-            "name": "pca9535_RX_LOS_2", "address": 0x24, "parent": "9546_ROOT", "channel": 0x4, "pins": 16,
++            "name": "pca9535_RX_LOS_2", "address": 0x24, "parent": "9546_ROOT", "channel": 2, "pins": 16,
+             "port_idx": {
+                 "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
+                 "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
+@@ -388,7 +412,7 @@
+             "config_0": 0xff, "config_1": 0xf0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xf0
+         },
+         "9535_BRD": {
+-            "name": "pca9535_brd_id", "address": 0x20, "parent": "9546_ROOT1", "channel": 0x4, "pins": 16,
++            "name": "pca9535_brd_id", "address": 0x20, "parent": "9546_ROOT1", "channel": 2, "pins": 16,
+             "port_idx": {
+                 "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
+                 "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
+@@ -423,6 +447,14 @@
+         self.logger = log.getLogger()
+         self.IOExpanders = self.SIAD_IOExpanders
+         self.ordered_ioexps = self.SIAD_IOExpanders_Order_List
++        self.i2c_mux = I2CMux()
++
++        for ioexp_name in self.ordered_ioexps:
++            if ioexp_name == "9539_CPU":
++                ioexp = PCA9539(self.IOExpanders[ioexp_name], self.i2c_mux)
++            else:
++                ioexp = PCA9535(self.IOExpanders[ioexp_name], self.i2c_mux)
++            self.IOExpanders[ioexp_name]["ioexp"] = ioexp
+ 
+     def _create_sysfs(self, path_parent, ioexp):
+         try:
+@@ -558,21 +590,11 @@
+         # Create sysfs, export gpio and initial gpio
+         for ioexp_name in self.ordered_ioexps:
+             try:
+-                bus = SMBus(0)
+-
+                 dev_addr = self.IOExpanders[ioexp_name]["address"]
++                mux_chanl = self.IOExpanders[ioexp_name]["channel"]
++                ioexp = self.IOExpanders[ioexp_name]["ioexp"]
+ 
+-                if self.IOExpanders[ioexp_name]["parent"] is None:
+-                    mux_chanl = 0x0
+-                else:
+-                    if self.IOExpanders[ioexp_name]["parent"] == "9546_ROOT":
+-                        mux_chanl = self.IOExpanders[ioexp_name]["channel"]
+-                        # Enable the channel of PCA9548
+-                        bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
+-                    else:
+-                        mux_chanl = self.IOExpanders[ioexp_name]["channel"]
+-                        # Enable the channel of PCA9548
+-                        bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, mux_chanl)
++                bus = ioexp.get_channel_bus(mux_chanl)
+ 
+                 # Set commnad config 0 & 1
+                 bus.write_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_CONF, self.IOExpanders[ioexp_name]["config_0"])
+@@ -614,16 +636,8 @@
+             except Exception as e:
+                 raise
+             finally:
+-                if self.IOExpanders[ioexp_name]["parent"] is not None:
+-                    if self.IOExpanders[ioexp_name]["parent"] == "9546_ROOT":
+-                        # Disable the channel of PCA9548
+-                        bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)
+-                    else:
+-                        # Disable the channel of PCA9548
+-                        bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 0x0)
+-            
+                 if bus != None:
+-                    bus.close()
++                    ioexp.close_channel_bus(bus)
+ 
+     def deinit(self):
+         try:
+@@ -633,12 +647,10 @@
+ 
+     def qsfp_get_presence(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+-            dev_addr = self.IOExpanders["9535_QSFP"]["address"]
+             mux_chanl = self.IOExpanders["9535_QSFP"]["channel"]
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            dev_addr = self.IOExpanders["9535_QSFP"]["address"]
++            ioexp = self.IOExpanders["9535_QSFP"]["ioexp"]
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
+@@ -654,21 +666,15 @@
+             raise
+             
+         finally:
+-            if self.IOExpanders["9535_QSFP"]["parent"] is not None:
+-                # Disable the channel of PCA9548
+-                bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def qsfp_set_lp_mode(self, port_num, cfg):
+         try:
+-            bus = SMBus(0)
+-            
+             dev_addr = self.IOExpanders["9535_QSFP"]["address"]
+             mux_chanl = self.IOExpanders["9535_QSFP"]["channel"]
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            ioexp = self.IOExpanders["9535_QSFP"]["ioexp"]
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT1_OUT)
+@@ -692,21 +698,15 @@
+             raise
+             
+         finally:
+-            if self.IOExpanders["9535_QSFP"]["parent"] is not None:
+-                # Disable the channel of PCA9548
+-                bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def qsfp_get_lp_mode(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             dev_addr = self.IOExpanders["9535_QSFP"]["address"]
+             mux_chanl = self.IOExpanders["9535_QSFP"]["channel"]
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            ioexp = self.IOExpanders["9535_QSFP"]["ioexp"]
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT1_OUT)
+@@ -722,21 +722,15 @@
+             raise
+             
+         finally:
+-            if self.IOExpanders["9535_QSFP"]["parent"] is not None:
+-                # Disable the channel of PCA9548
+-                bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def qsfp_reset_port(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             dev_addr = self.IOExpanders["9535_QSFP"]["address"]
+             mux_chanl = self.IOExpanders["9535_QSFP"]["channel"]
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            ioexp = self.IOExpanders["9535_QSFP"]["ioexp"]
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             ori_data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT1_OUT)
+@@ -756,26 +750,21 @@
+             raise
+             
+         finally:
+-            if self.IOExpanders["9535_QSFP"]["parent"] is not None:
+-                # Disable the channel of PCA9548
+-                bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def sfp_get_presence(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP7"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP7"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP7"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP8"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP8"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP8"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
+@@ -794,25 +783,21 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def sfp_get_rx_lost(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP9"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP9"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP9"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP10"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP10"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP10"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
+@@ -831,25 +816,21 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def sfp_get_tx_flt(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP3"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP3"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP3"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP4"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP4"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP4"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
+@@ -868,25 +849,21 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def sfp_set_port_rate(self, port_num, cfg):
+         try:
+-            bus = SMBus(0)
+-            
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP5"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP5"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP5"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP6"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP6"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP6"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
+@@ -925,25 +902,21 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def sfp_get_port_rate(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP5"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP5"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP5"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP6"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP6"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP6"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
+@@ -962,11 +935,8 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+                 
+     def sfp_set_port_status(self, port_num, cfg):
+         try:
+@@ -975,12 +945,13 @@
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP1"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP1"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP1"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP2"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP2"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP2"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
+@@ -1019,25 +990,21 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+                
+     def sfp_get_port_status(self, port_num):
+         try:
+-            bus = SMBus(0)
+-            
+             if port_num <= 15:
+                 dev_addr = self.IOExpanders["9535_SFP1"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP1"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP1"]["ioexp"]
+             else:
+                 dev_addr = self.IOExpanders["9535_SFP2"]["address"]
+                 mux_chanl = self.IOExpanders["9535_SFP2"]["channel"]
++                ioexp = self.IOExpanders["9535_SFP2"]["ioexp"]
+ 
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, mux_chanl)
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
+@@ -1056,21 +1023,16 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+                 
+     def bmc_reset_set(self, input_target):
+         try:
+-            bus = SMBus(0)
+-            
+             dev_addr = self.IOExpanders["9535_BRD"]["address"]
+             mux_chanl = self.IOExpanders["9535_BRD"]["channel"]
+-            
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, mux_chanl)
++            ioexp = self.IOExpanders["9535_BRD"]["ioexp"]
++
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
+@@ -1103,11 +1065,8 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+     
+     def rov_get_voltage(self):
+         try:
+@@ -1181,9 +1140,9 @@
+             
+             dev_addr = self.IOExpanders["9535_BRD"]["address"]
+             mux_chanl = self.IOExpanders["9535_BRD"]["channel"]
+-            
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, mux_chanl)
++            ioexp = self.IOExpanders["9535_BRD"]["ioexp"]
++
++            bus = ioexp.get_channel_bus(mux_chanl)
+             
+             # Get data
+             data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
+@@ -1216,8 +1175,5 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close() 
++                ioexp.close_channel_bus(bus)
+--- a/utils/python/i2c_mux/i2c_mux.py
++++ b/utils/python/i2c_mux/i2c_mux.py
+@@ -21,12 +21,22 @@
+ from common.logger import Logger
+ 
+ class PCA954x:
++    PATH_SYS_I2C_DEVICES = "/sys/bus/i2c/devices"
+ 
+     def __init__(self, name, address, bus_num, bus_of_channel):
+         self.name = self.NAME + " " + name
+         self.address = address
+         self.bus_num = bus_num
+-        self.ch_bus = bus_of_channel
++        self.potential_ch_bus = bus_of_channel
++
++    @property
++    def ch_bus(self):
++        # Detect whether the system is using device per mux channel,
++        # or otherwise one global i2c device
++        if os.path.exists(self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.potential_ch_bus[0])):
++            return self.potential_ch_bus
++        else:
++            return None
+ 
+ class PCA9548(PCA954x):
+ 
+@@ -47,6 +57,7 @@
+     I2C_ADDR_9548_SFP3 = 0x73
+     I2C_ADDR_9548_SFP4 = 0x74
+     I2C_ADDR_9546_QSFP = 0x70
++    I2C_ADDR_9546_ROOT1 = 0x75
+ 
+     NUM_I801_DEVICE = 0
+     PATH_SYS_I2C_DEVICES = "/sys/bus/i2c/devices"
+@@ -102,10 +113,16 @@
+                                   self.NUM_I801_DEVICE + 39,
+                                   self.NUM_I801_DEVICE + 40)
+ 
++        self.NUM_MUX_9546_ROOT1 = (self.NUM_I801_DEVICE + 41,
++                                   self.NUM_I801_DEVICE + 42,
++                                   self.NUM_I801_DEVICE + 43,
++                                   self.NUM_I801_DEVICE + 44)
++
+         # MUX Alias
+         self.I2C_BUS_MUX_ROOT = self.NUM_I801_DEVICE
+         self.I2C_BUS_MUX_SFP = self.NUM_MUX_9546_ROOT[3]
+         self.I2C_BUS_MUX_QSFP = self.NUM_MUX_9546_ROOT[3]
++        self.I2C_BUS_MUX_ROOT1 = self.NUM_I801_DEVICE
+ 
+         # Sysfs path
+         self.PATH_MUX_9546_ROOT_CHAN0 = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.NUM_MUX_9546_ROOT[0])
+@@ -117,6 +134,8 @@
+         self.PATH_MUX_9548_SFP_PARENT = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.I2C_BUS_MUX_SFP)
+         self.PATH_MUX_9546_QSFP_CHAN0 = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.NUM_MUX_9546_QSFP[0])
+         self.PATH_MUX_9546_QSFP_PARENT = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.I2C_BUS_MUX_QSFP)
++        self.PATH_MUX_9546_ROOT1_CHAN0 = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.NUM_MUX_9546_ROOT1[0])
++        self.PATH_MUX_9546_ROOT1_PARENT = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.I2C_BUS_MUX_ROOT1)
+ 
+         self.MUXs = {
+             "9546_ROOT": PCA9546("ROOT", self.I2C_ADDR_9546_ROOT, self.I2C_BUS_MUX_ROOT, self.NUM_MUX_9546_ROOT),
+@@ -124,7 +143,8 @@
+             "9548_SFP2": PCA9548("SFP2", self.I2C_ADDR_9548_SFP2, self.I2C_BUS_MUX_SFP, self.NUM_MUX_9548_SFP2),
+             "9548_SFP3": PCA9548("SFP3", self.I2C_ADDR_9548_SFP3, self.I2C_BUS_MUX_SFP, self.NUM_MUX_9548_SFP3),
+             "9548_SFP4": PCA9548("SFP4", self.I2C_ADDR_9548_SFP4, self.I2C_BUS_MUX_SFP, self.NUM_MUX_9548_SFP4),
+-            "9546_QSFP": PCA9546("QSFP", self.I2C_ADDR_9546_QSFP, self.I2C_BUS_MUX_QSFP, self.NUM_MUX_9546_QSFP)
++            "9546_QSFP": PCA9546("QSFP", self.I2C_ADDR_9546_QSFP, self.I2C_BUS_MUX_QSFP, self.NUM_MUX_9546_QSFP),
++            "9546_ROOT1": PCA9546("ROOT1", self.I2C_ADDR_9546_ROOT1, self.I2C_BUS_MUX_ROOT1, self.NUM_MUX_9546_ROOT1)
+         }
+ 
+     def _create_sysfs(self, path_ch0, path_parent, i2c_mux):
+@@ -135,6 +155,13 @@
+                 with open(path_parent + "/new_device", 'w') as f:
+                     self.logger.info(i2c_mux.NAME + " " + hex(i2c_mux.address))
+                     f.write(i2c_mux.NAME + " " + hex(i2c_mux.address))
++                # By default the pca954x driver doesn't deselect the
++                # mux at the end of transactions making it unsafe with
++                # multiple muxes in the system. Work around that by
++                # telling it to deselect after each transaction for
++                # each channel, which is defined by the value -2.
++                with open(path_ch0 + "/mux_device/idle_state", 'w') as f:
++                    f.write("-2")
+                 self.logger.info("Register " + i2c_mux.name + " in sysfs")
+         except Exception as e:
+             self.logger.error("Register MUX " + i2c_mux.name + " to sysfs fail, error: ", str(e))
+@@ -195,5 +222,13 @@
+             self.logger.error("Create MUX 9546 QSFP fail, error: ", str(e))
+             raise
+ 
++        try:
++            self._create_sysfs(self.PATH_MUX_9546_ROOT1_CHAN0,
++                               self.PATH_MUX_9546_ROOT1_PARENT,
++                               self.MUXs["9546_ROOT1"])
++        except Exception as e:
++            self.logger.error("Create MUX 9546 ROOT1 fail, error: ", str(e))
++            raise
++
+     def deinit(self):
+         pass
+--- a/utils/python/timing/idt82p33831_reg.py
++++ b/utils/python/timing/idt82p33831_reg.py
+@@ -21,6 +21,7 @@
+ from smbus import SMBus
+ from common.logger import Logger
+ from cpld.cpld import CPLD
++from i2c_mux.i2c_mux import I2CMux
+ 
+ '''
+ This class should be re-factor when it's too complicated to maintain.
+@@ -573,7 +574,7 @@
+     PAGE = 0x7F    
+         
+     I2C_ADDR_MUX_9546 = 0x75
+-    IDT82P33831_CHANL = 0x08
++    IDT82P33831_CHANL = 3
+ 
+     @abc.abstractmethod
+     def setConfiguration(self, data):
+@@ -583,6 +584,42 @@
+     def getConfiguration(self, data):
+         return None
+ 
++    def _get_channel_bus(self, channel):
++        parent = None
++        # Proto and Alpha doesn't have parent MUX
++        hw_rev = self.cpld.get_hw_rev()
++        if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
++            pass
++        elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
++            pass
++        else:
++            parent = "9546_ROOT1"
++
++        if parent is None:
++            return SMBus(0)
++        if self.i2c_mux[parent].ch_bus != None:
++            bus_num = self.i2c_mux[parent].ch_bus[channel]
++            return SMBus(bus_num)
++        else:
++            bus = SMBus(0)
++            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, 1 << channel)
++            return bus
++
++    def _close_channel_bus(self, bus):
++        parent = None
++        # Proto and Alpha doesn't have parent MUX
++        hw_rev = self.cpld.get_hw_rev()
++        if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
++            pass
++        elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
++            pass
++        else:
++            parent = "9546_ROOT1"
++
++        if parent != None and self.i2c_mux[parent].ch_bus is None:
++            bus.write_byte_data(self.I2C_ADDR_MUX_9546, 0x0, 0x0)
++        bus.close()
++
+ class DPLLSingleRegister(DPLLRegister):
+ 
+     def __init__(self, bus, page, register):
+@@ -590,23 +627,15 @@
+         self.page = page
+         self.register = register
+         self.cpld = CPLD()
++        self.i2c_mux = I2CMux().MUXs
+ 
+     def setConfiguration(self, data):
+         try:
+-            bus = SMBus(self.BUS)
++            bus = self._get_channel_bus(DPLLRegister.IDT82P33831_CHANL)
+         except:
+             raise
+ 
+         try:
+-            # Proto and Alpha doesn't have parent MUX
+-            hw_rev = self.cpld.get_hw_rev()
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+ 
+             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
+             bus.write_byte_data(DPLLRegister.ADDR, self.register, data)
+@@ -614,34 +643,15 @@
+         except:
+             raise
+         finally:
+-            # Proto and Alpha doesn't have parent MUX
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-                
+-            bus.close()
++            self._close_channel_bus(bus)
+ 
+     def getConfiguration(self):
+         try:
+-            bus = SMBus(self.BUS)
++            bus = self._get_channel_bus(DPLLRegister.IDT82P33831_CHANL)
+         except:
+             raise
+ 
+         try:
+-            # Proto and Alpha doesn't have parent MUX
+-            hw_rev = self.cpld.get_hw_rev()
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+-                
+             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
+             b = bus.read_byte_data(DPLLRegister.ADDR, self.register)
+             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, 0)
+@@ -650,16 +660,7 @@
+         except:
+             raise
+         finally:
+-            # Proto and Alpha doesn't have parent MUX
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-                
+-            bus.close()
++            self._close_channel_bus(bus)
+ 
+ class DPLLMultiRegister(DPLLRegister):
+ 
+@@ -670,25 +671,16 @@
+         self.register = register
+         self.length = length
+         self.cpld = CPLD()
++        self.i2c_mux = I2CMux().MUXs
+ 
+     def setConfiguration(self, data):
+         # TODO: Check if data is list with right length
+         try:
+-            bus = SMBus(self.BUS)
++            bus = self._get_channel_bus(DPLLRegister.IDT82P33831_CHANL)
+         except:
+             raise
+ 
+         try:
+-            # Proto and Alpha doesn't have parent MUX
+-            hw_rev = self.cpld.get_hw_rev()
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+-                
+             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
+             for idx, datum in enumerate(data):
+                 bus.write_byte_data(DPLLRegister.ADDR, self.register+idx, datum)
+@@ -696,35 +688,16 @@
+         except:
+             raise
+         finally:
+-            # Proto and Alpha doesn't have parent MUX
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-                
+-            bus.close()
++            self._close_channel_bus(bus)
+ 
+     def getConfiguration(self):
+         data = []
+         try:
+-            bus = SMBus(self.BUS)
++            bus = self._get_channel_bus(DPLLRegister.IDT82P33831_CHANL)
+         except:
+             raise
+ 
+         try:
+-            # Proto and Alpha doesn't have parent MUX
+-            hw_rev = self.cpld.get_hw_rev()
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+-                
+             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
+             for idx in range(0, self.length):
+                 data.append(bus.read_byte_data(DPLLRegister.ADDR, self.register+idx))
+@@ -734,16 +707,7 @@
+         except:
+             raise
+         finally:
+-            # Proto and Alpha doesn't have parent MUX
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-                
+-            bus.close()
++            self._close_channel_bus(bus)
+ 
+ class APLLRegister:
+ 
+@@ -754,70 +718,68 @@
+         self.BUS = bus
+         self.register = register
+         self.cpld = CPLD()
+-        pass
++        self.i2c_mux = I2CMux().MUXs
++
++    def _get_channel_bus(self, channel):
++        parent = None
++        # Proto and Alpha doesn't have parent MUX
++        hw_rev = self.cpld.get_hw_rev()
++        if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
++            pass
++        elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
++            pass
++        else:
++            parent = "9546_ROOT1"
++
++        if parent is None:
++            return SMBus(self.BUS)
++        if self.i2c_mux[parent].ch_bus != None:
++            bus_num = self.i2c_mux[parent].ch_bus[channel]
++            return SMBus(bus_num)
++        else:
++            bus = SMBus(self.BUS)
++            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 1 << channel)
++            return bus
++
++    def _close_channel_bus(self, bus):
++        parent = None
++        # Proto and Alpha doesn't have parent MUX
++        hw_rev = self.cpld.get_hw_rev()
++        if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
++            pass
++        elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
++            pass
++        else:
++            parent = "9546_ROOT1"
++
++        if parent != None and self.i2c_mux[parent].ch_bus is None:
++            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
++        bus.close()
+ 
+     def setConfiguration(self, data):
+         try:
+-            bus = SMBus(self.BUS)
++            bus = self._get_channel_bus(DPLLRegister.IDT82P33831_CHANL)
+         except:
+             raise
+ 
+         try:
+-            # Proto and Alpha doesn't have parent MUX
+-            hw_rev = self.cpld.get_hw_rev()
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+-                
+             bus.write_byte_data(APLLRegister.ADDR, self.register, data)
+         except:
+             raise
+         finally:
+-            # Proto and Alpha doesn't have parent MUX
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-                
+-            bus.close()
++            self._close_channel_bus(bus)
+ 
+     def getConfiguration(self):
+         try:
+-            bus = SMBus(self.BUS)
++            bus = self._get_channel_bus(DPLLRegister.IDT82P33831_CHANL)
+         except:
+             raise
+ 
+         try:
+-            # Proto and Alpha doesn't have parent MUX
+-            hw_rev = self.cpld.get_hw_rev()
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+-                
+             b = bus.read_byte_data(APLLRegister.ADDR, self.register)
+ 
+             return b
+         except:
+             raise
+         finally:
+-            # Proto and Alpha doesn't have parent MUX
+-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+-                pass 
+-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+-                pass 
+-            else:
+-                # Enable the channel of PCA9546
+-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+-                
+-            bus.close()
++            self._close_channel_bus(bus)
+--- a/utils/python/cpld/cpld.py
++++ b/utils/python/cpld/cpld.py
+@@ -27,6 +27,7 @@
+ from protocol.lpc import LPC
+ from protocol.lpc import LPCDevType
+ from smbus import SMBus
++from i2c_mux.i2c_mux import I2CMux
+ 
+ class PCA9535_CMD:
+     
+@@ -72,7 +73,7 @@
+     BUILD_REV_A4_STR = "A4"
+ 
+     I2C_ADDR_9546_ROOT = 0x75
+-    I2C_ADDR_BRD_ID_CHAL = 0x04
++    I2C_ADDR_BRD_ID_CHAL = 2
+     I2C_ADDR_BRD_ID = 0x20
+     
+     InterruptMaskConst = {
+@@ -143,6 +144,7 @@
+         log = Logger(__name__)
+         self.logger = log.getLogger()
+         self.lpc = LPC()
++        self.i2c_mux = I2CMux().MUXs
+         # Get hardware version
+         board_id = self.lpc.regGet(LPCDevType.CPLD_ON_MAIN_BOARD, 0x00)
+         hw_rev = (board_id & 0b00001100) >> 2
+@@ -163,37 +165,40 @@
+     def deinit(self):
+         pass
+ 
++    def get_channel_bus(self, channel):
++        if self.i2c_mux["9546_ROOT1"].ch_bus != None:
++            bus_num = self.i2c_mux["9546_ROOT1"].ch_bus[channel]
++            return SMBus(bus_num)
++        else:
++            bus = SMBus(0)
++            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 1 << channel)
++            return bus
++
++    def close_channel_bus(self, bus):
++        if self.i2c_mux["9546_ROOT1"].ch_bus is None:
++            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)
++        bus.close()
++
+     ########## FOR CPLD UTILITY ##########
+     def check_hw_rev_mux(self):
+         try:
+-            bus = SMBus(0)
+-            
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0) 
++            bus = self.get_channel_bus(0)
++            self.close_channel_bus(bus)
+             
+             return "EXIST"
+         except Exception as e:
+             self.logger.error("Get MUX fail (it's alpha board), error: " + str(e))
+             return "NOT_EXIST"   
+-        finally:
+-            if bus != None:
+-                bus.close()     
+                 
+     def get_brd_id_info(self):
++        bus = self.get_channel_bus(self.I2C_ADDR_BRD_ID_CHAL)
+         try:
+-            bus = SMBus(0)
+-            
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, self.I2C_ADDR_BRD_ID_CHAL)  
+-            
+             brd_info = bus.read_byte_data(self.I2C_ADDR_BRD_ID, PCA9535_CMD.PCA9535_REG_PORT1_IN)
+             
+             return brd_info
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)
+-            
+             if bus != None:
+-                bus.close()         
++                self.close_channel_bus(bus)
+         
+     def get_board_id(self):
+         try:
+--- a/utils/python/platform_utility.py
++++ b/utils/python/platform_utility.py
+@@ -72,6 +72,10 @@
+             # I2C Dev
+             subprocess.run(['modprobe', 'i2c_dev'])
+ 
++            # I2C Mux
++            subprocess.run(['modprobe', 'i2c_mux_pca954x'])
++            self.i2c_mux.init()
++
+             # EEPROM
+             self.eeprom.init()
+ 

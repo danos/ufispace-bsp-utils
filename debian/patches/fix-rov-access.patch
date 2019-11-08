@@ -1,0 +1,62 @@
+--- a/utils/python/gpio/ioexp.py
++++ b/utils/python/gpio/ioexp.py
+@@ -1073,14 +1073,12 @@
+     
+     def rov_get_voltage(self):
+         try:
+-            bus = SMBus(0)
+-            
+             dev_addr = self.IOExpanders["9535_BRD"]["address"]
+             mux_chanl = self.IOExpanders["9535_BRD"]["channel"]
+-            
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, mux_chanl)
+-            
++            ioexp = self.IOExpanders["9535_BRD"]["ioexp"]
++
++            bus = ioexp.get_channel_bus(mux_chanl)
++
+             # Get data
+             data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
+                 
+@@ -1098,22 +1096,17 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+ 
+     def rov_set_voltage(self, rov):
+         try:
+-            bus = SMBus(0)
+-            
+             dev_addr = self.IOExpanders["9535_BRD"]["address"]
+             mux_chanl = self.IOExpanders["9535_BRD"]["channel"]
+-            
+-            # Enable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, mux_chanl)
+-            
++            ioexp = self.IOExpanders["9535_BRD"]["ioexp"]
++
++            bus = ioexp.get_channel_bus(mux_chanl)
++
+             # Set voltage
+             setok = 0
+             for element in self.TPS53667_voltage:
+@@ -1131,11 +1124,8 @@
+             raise
+             
+         finally:
+-            # Disable the channel of PCA9548
+-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT1, 0x0, 0x0)   
+-                     
+             if bus != None:
+-                bus.close()
++                ioexp.close_channel_bus(bus)
+             
+     def bmc_reset_unset(self, input_target):
+         try:

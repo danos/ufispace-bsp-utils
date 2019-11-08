@@ -1,0 +1,94 @@
+--- a/utils/python/gpio/ioexp.py
++++ b/utils/python/gpio/ioexp.py
+@@ -764,9 +764,9 @@ class IOExpander:
+ 
+             if port_num <= 7:
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 return ((data0>> 7-(port_num%8)) & 0x1)
+             else:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+@@ -797,9 +797,9 @@ class IOExpander:
+ 
+             if port_num <= 7:
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+             else:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+@@ -830,9 +830,9 @@ class IOExpander:
+ 
+             if port_num <= 7:
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+             else:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+@@ -868,13 +868,13 @@ class IOExpander:
+                 else:
+                     data = (0x1 << 7-(port_num%8)) | data0
+                 pca9535_cmd = PCA9535_CMD.PCA9535_REG_PORT0_OUT
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 if cfg == 0:
+                     data = ((0x1 << 7-(port_num%8)) ^ 0xff) & data1
+                 else:
+                     data = (0x1 << 7-(port_num%8)) | data1
+                 pca9535_cmd = PCA9535_CMD.PCA9535_REG_PORT1_OUT
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 if cfg == 0:
+                     data = ((0x1 << 7-(port_num%8)) ^ 0xff) & data0
+                 else:
+@@ -916,9 +916,9 @@ class IOExpander:
+ 
+             if port_num <= 7:
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+             else:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+@@ -956,13 +956,13 @@ class IOExpander:
+                 else:
+                     data = (0x1 << 7-(port_num%8)) | data0
+                 pca9535_cmd = PCA9535_CMD.PCA9535_REG_PORT0_OUT
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 if cfg == 0:
+                     data = ((0x1 << 7-(port_num%8)) ^ 0xff) & data1
+                 else:
+                     data = (0x1 << 7-(port_num%8)) | data1
+                 pca9535_cmd = PCA9535_CMD.PCA9535_REG_PORT1_OUT
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 if cfg == 0:
+                     data = ((0x1 << 7-(port_num%8)) ^ 0xff) & data0
+                 else:
+@@ -1004,9 +1004,9 @@ class IOExpander:
+ 
+             if port_num <= 7:
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 8 and port_num <= 15:
++            elif port_num >= 8 and port_num <= 15:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)
+-            elif port_num > 16 and port_num <= 23: 
++            elif port_num >= 16 and port_num <= 23: 
+                 return ((data0 >> 7-(port_num%8)) & 0x1)
+             else:
+                 return ((data1 >> 7-(port_num%8)) & 0x1)

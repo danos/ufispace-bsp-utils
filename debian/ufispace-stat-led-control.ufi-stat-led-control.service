@@ -1,0 +1,16 @@
+[Unit]
+After=systemd-user-sessions.service
+After=syslog.service
+Before=getty.target
+IgnoreOnIsolate=yes
+
+[Service]
+ExecStart=/usr/sbin/ufi-stat-led-control sys on green solid
+ExecStop=/usr/sbin/ufi-stat-led-control sys off yellow solid
+Type=oneshot
+RemainAfterExit=yes
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=basic.target

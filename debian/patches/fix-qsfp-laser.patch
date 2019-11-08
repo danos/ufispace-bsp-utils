@@ -1,0 +1,45 @@
+--- a/utils/python/eeprom/eeprom.py
++++ b/utils/python/eeprom/eeprom.py
+@@ -127,6 +127,11 @@ class EEPRom:
+     QSFP_EEPROM_SIZE = 256
+     QSFP_EEPROM_PAGE_SIZE = 0x10
+     QSFP_EEPROM_PAGE_MASK = SFP_EEPROM_PAGE_SIZE - 1
++
++    QSFP_EEPROM_TX_DISABLE = 0x56
++    QSFP_EEPROM_TX_DISABLE_MASK = 0x0F
++    QSFP_EEPROM_TX_ENABLE_MASK = 0x00
++
+     
+     def __init__(self):
+         log = Logger(__name__)
+@@ -135,6 +140,30 @@ class EEPRom:
+         self.ioexp = IOExpander()
+         self.cpld = CPLD()
+         
++    def set_tx_laser(self, port_num, enable, sub_port=None):
++        i2c_address = self.I2C_ADDR_EEPROM_SFP_A0
++        mask = 0
++
++        bus = self.get_qsfp_bus(port_num)
++
++        try:
++            if sub_port == None:
++                if enable:
++                    mask = self.QSFP_EEPROM_TX_ENABLE_MASK
++                else:
++                    mask = self.QSFP_EEPROM_TX_DISABLE_MASK
++            else:
++                mask = bus.read_byte_data(i2c_address,
++                                          self.QSFP_EEPROM_TX_DISABLE)
++                if enable:
++                    mask &= ~(1 << sub_port)
++                else:
++                    mask |= (1 << sub_port)
++
++            bus.write_byte_data(i2c_address, self.QSFP_EEPROM_TX_DISABLE, mask)
++        finally:
++            bus.close()
++
+     def _data_transfer(self, _len, _type, _data):
+         
+         output = ""
