@@ -1,3 +1,9 @@
+ufispace-bsp-utils (3.0.8-0vyatta4) unstable; urgency=medium
+
+  * Fix serial access to GPS (Bugfix: VRVDR-49930)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Tue, 11 Feb 2020 10:02:41 -0500
+
 ufispace-bsp-utils (3.0.8-0vyatta3) unstable; urgency=medium
 
   * DANOS Import master
