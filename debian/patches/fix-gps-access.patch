@@ -1,0 +1,149 @@
+--- a/utils/python/timing/gpsusb.py
++++ b/utils/python/timing/gpsusb.py
+@@ -140,10 +140,13 @@ class GPSUSB:
+                 msg = UBXMessage(resp)
+                 if msg.class_id.tolist() == ubx_utils.CLASS_ACK_ACK:
+                     ack = True
++                    read = False
+                 elif msg.class_id.tolist() == ubx_utils.CLASS_ACK_NAK:
+                     ack = False
++                    read = False
+                 elif msg.class_id.tolist() == class_id:
+                     response = msg.getMessage()
++                    read = False
+             except:
+                 # Continuous read until timeout
+                 read = False
+@@ -218,6 +221,19 @@ class GPSUSB:
+     def configureTimePulse2(self):
+         self.configureTimePulse(UBXCommand.cmdCfgTP2)
+ 
++    def configureUartTod(self):
++        self.configureUart(UBXCommand.cmdCfgTod1)
++        self.configureUart(UBXCommand.cmdCfgTod2)
++        self.configureUart(UBXCommand.cmdCfgTod3)
++        self.configureUart(UBXCommand.cmdCfgTod4)
++        self.configureUart(UBXCommand.cmdCfgTod5)
++        self.configureUart(UBXCommand.cmdCfgTod6)
++        self.configureUart(UBXCommand.cmdCfgTod7)
++        self.configureUart(UBXCommand.cmdCfgTod8)
++        self.configureUart(UBXCommand.cmdCfgTod9)
++        self.configureTimePulse(UBXCommand.cmdCfgTP2)
++        self.configureUart(UBXCommand.cmdCfgTod10)
++
+     def getTimePulseCfg(self, timePulse):
+         cmd = UBX_CFG_TP5.timePulseCommand(timePulse)
+         response = self._gps_get(cmd)
+@@ -227,3 +243,5 @@ class GPSUSB:
+     def configureTimePulse(self, cmd):
+         result = self._gps_set(cmd)
+ 
++    def configureUart(self, cmd):
++        result = self._gps_set(cmd)
+--- a/utils/python/timing/neom8t.py
++++ b/utils/python/timing/neom8t.py
+@@ -23,7 +23,6 @@ Use USB to write messages and use I2C to
+ import os
+ import sys
+ import time
+-import serial
+ 
+ from common.logger import Logger
+ from timing.gpsusb import GPSUSB
+@@ -44,7 +43,7 @@ class NEOM8T:
+     def init(self):
+         usb_dev = GPSUSB()
+         # Disable NMEA to make reading UBX response possible to imeplement
+-        usb_dev.disableNMEAMessage()
++        # usb_dev.disableNMEAMessage()
+         # Workaround:
+         # Read all data from buffer before get/set to ensure UBX reponse could be read
+         usb_dev.clearBuffer()
+@@ -78,25 +77,6 @@ class NEOM8T:
+         return tpCmd.getAntennaCableDelay()
+ 
+     def setGPSToDTimingFormat(self):
+-        ser = serial.Serial()
+-        ser.port = "/dev/ttyACM0"
+-        ser.baudrate = 9600
+-        ser.timeout = 1
+-        ser.open()
+-
+-        data = ["B56206010800F0020000000000000131",
+-                "B56206010800F001000000000001012B",
+-                "B56206010800F0020000000000010232",
+-                "B56206010800F0030000000000010339",
+-                "B56206010800F004010000010101074B",
+-                "B56206010800F0050000000000010547",
+-                "B56206010800F006000000000000054D",
+-                "B56206010800F0070000000000000654",
+-                "B56206010800F0000000000000010024",
+-                "B562061714000040000200000000000100010000000000000000754F"]
+-
+-        for x in data:
+-            ser.write(bytes.fromhex(x))
+-
+-        ser.flush()
+-        ser.close()
++        usb_dev = GPSUSB()
++        usb_dev.enable()
++        usb_dev.configureUartTod()
+--- a/utils/python/timing/ubx/ubx_command.py
++++ b/utils/python/timing/ubx/ubx_command.py
+@@ -28,3 +28,56 @@ class UBXCommand:
+                      0x00, 0x00, 0xEF, 0x00, 0x00, 0x00, 0xA9, 0xA8]
+                 )
+ 
++    # Output ToD from Uart
++    cmdCfgTod1 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x31],
++                 )
++
++    cmdCfgTod2 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x01,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x2B]
++                 )
++
++    cmdCfgTod3 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x32]
++                 )
++
++    cmdCfgTod4 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x03,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x03, 0x39],
++                 )
++
++    cmdCfgTod5 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x04,
++                     0x01, 0x00, 0x00, 0x01, 0x01, 0x01, 0x07, 0x4B]
++                 )
++
++    cmdCfgTod6 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x05, 0x47]
++                 )
++
++    cmdCfgTod7 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x06,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x4D]
++                 )
++
++    cmdCfgTod8 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x07,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x54]
++                 )
++
++    cmdCfgTod9 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x00,
++                     0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x24]
++                 )
++
++    cmdCfgTod10 = array.array('B',
++                    [0xB5, 0x62, 0x06, 0x17, 0x14, 0x00, 0x00, 0x40,
++                     0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
++                     0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++                     0x00, 0x00, 0x75, 0x4F]
++                 )
++
