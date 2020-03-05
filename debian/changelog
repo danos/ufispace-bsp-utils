@@ -1,3 +1,9 @@
+ufispace-bsp-utils (3.0.8-0vyatta5) unstable; urgency=medium
+
+  * Fix configuration writes to the GPS (Bugfix: VRVDR-49978)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Thu, 05 Mar 2020 10:49:40 -0500
+
 ufispace-bsp-utils (3.0.8-0vyatta4) unstable; urgency=medium
 
   * Fix serial access to GPS (Bugfix: VRVDR-49930)
