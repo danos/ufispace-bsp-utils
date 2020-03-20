@@ -1,3 +1,10 @@
+ufispace-bsp-utils (3.0.8-0vyatta6) unstable; urgency=medium
+
+  * Document current GPS settings (Bugfix: VRVDR-50402)
+  * Fix GPS configuration (Bugfix: VRVDR-50402)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Fri, 20 Mar 2020 10:53:56 -0400
+
 ufispace-bsp-utils (3.0.8-0vyatta5) unstable; urgency=medium
 
   * Fix configuration writes to the GPS (Bugfix: VRVDR-49978)
