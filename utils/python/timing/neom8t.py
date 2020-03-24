@@ -23,7 +23,6 @@ Use USB to write messages and use I2C to read messages
 import os
 import sys
 import time
-import serial
 
 from common.logger import Logger
 from timing.gpsusb import GPSUSB
@@ -44,7 +43,7 @@ class NEOM8T:
     def init(self):
         usb_dev = GPSUSB()
         # Disable NMEA to make reading UBX response possible to imeplement
-        usb_dev.disableNMEAMessage()
+        # usb_dev.disableNMEAMessage()
         # Workaround:
         # Read all data from buffer before get/set to ensure UBX reponse could be read
         usb_dev.clearBuffer()
@@ -78,25 +77,8 @@ class NEOM8T:
         return tpCmd.getAntennaCableDelay()
 
     def setGPSToDTimingFormat(self):
-        ser = serial.Serial()
-        ser.port = "/dev/ttyACM0"
-        ser.baudrate = 9600
-        ser.timeout = 1
-        ser.open()
+        usb_dev = GPSUSB()
+        usb_dev.enable()
+        usb_dev.configureUartTod()
+        
 
-        data = ["B56206010800F0020000000000000131",
-                "B56206010800F001000000000001012B",
-                "B56206010800F0020000000000010232",
-                "B56206010800F0030000000000010339",
-                "B56206010800F004010000010101074B",
-                "B56206010800F0050000000000010547",
-                "B56206010800F006000000000000054D",
-                "B56206010800F0070000000000000654",
-                "B56206010800F0000000000000010024",
-                "B562061714000040000200000000000100010000000000000000754F"]
-
-        for x in data:
-            ser.write(bytes.fromhex(x))
-
-        ser.flush()
-        ser.close()
