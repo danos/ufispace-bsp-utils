@@ -1,2 +1,3 @@
 debian/1000-ufispace-bsp-init opt/vyatta/preconfig.d
 debian/i2c_i801.conf etc/modprobe.d
+utils/ut/timing_ut.py opt/ufispace/bin

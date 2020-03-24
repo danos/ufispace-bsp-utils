@@ -6,4 +6,3 @@ fix-sfp-presence.patch
 fix-qsfp-laser.patch
 eeprom-page-access.patch
 fix-rov-access.patch
-fix-gps-access.patch

@@ -1,8 +1,11 @@
 --- a/utils/python/setup.py
 +++ b/utils/python/setup.py
-@@ -20,5 +20,5 @@ from distutils.core import setup
+@@ -18,7 +18,7 @@
+ from setuptools import setup
+ from distutils.core import setup
  setup(name='SIAD_BSP_UTIL',
-       version='PKG_VER',
+-      version='PKG_VER',
++      version='3.0.9',
        packages=['','timing','common','const','cpld','eeprom','gpio','i2c_mux','protocol','timing.ubx'],
 -      install_requires=['pyusb', 'portio']
 +      install_requires=['pyusb', 'portio', 'smbus', 'serial']
