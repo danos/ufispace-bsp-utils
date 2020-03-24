@@ -140,10 +140,13 @@ class GPSUSB:
                 msg = UBXMessage(resp)
                 if msg.class_id.tolist() == ubx_utils.CLASS_ACK_ACK:
                     ack = True
+                    read = False
                 elif msg.class_id.tolist() == ubx_utils.CLASS_ACK_NAK:
                     ack = False
+                    read = False
                 elif msg.class_id.tolist() == class_id:
                     response = msg.getMessage()
+                    read = False
             except:
                 # Continuous read until timeout
                 read = False
@@ -218,6 +221,21 @@ class GPSUSB:
     def configureTimePulse2(self):
         self.configureTimePulse(UBXCommand.cmdCfgTP2)
 
+    def configureUartTod(self):
+        self.configureUart(UBXCommand.cmdCfgTod1)
+        self.configureUart(UBXCommand.cmdCfgTod2)
+        self.configureUart(UBXCommand.cmdCfgTod3)
+        self.configureUart(UBXCommand.cmdCfgTod4)
+        self.configureUart(UBXCommand.cmdCfgTod5)
+        self.configureUart(UBXCommand.cmdCfgTod6)
+        self.configureUart(UBXCommand.cmdCfgTod7)
+        self.configureUart(UBXCommand.cmdCfgTod8)
+        self.configureUart(UBXCommand.cmdCfgTod9)
+        self.configureTimePulse(UBXCommand.cmdCfgTP2)
+        self.configureUart(UBXCommand.cmdCfgTod10)
+        self.configureUart(UBXCommand.cmdCfgUartZDAEn)
+
+
     def getTimePulseCfg(self, timePulse):
         cmd = UBX_CFG_TP5.timePulseCommand(timePulse)
         response = self._gps_get(cmd)
@@ -226,4 +244,8 @@ class GPSUSB:
 
     def configureTimePulse(self, cmd):
         result = self._gps_set(cmd)
+
+    def configureUart(self, cmd):
+        result = self._gps_set(cmd)
+        
 

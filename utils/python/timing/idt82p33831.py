@@ -164,16 +164,18 @@ class IDT82P33831:
         info = {}
         current = "None"
         for key, input in self.input_map.items():
-            if data["current"] == input.getInput():
-                current = key
+            if input.getDPLL() == dpll:
+                if data["current"] == input.getInput():
+                    current = key
         info["current"] = current
 
         priority = []
         for i in range(0,3):
             current = "None"
             for key, input in self.input_map.items():
-                if data["priority"][i] == input.getInput():
-                    current = key
+                if input.getDPLL() == dpll:
+                    if data["priority"][i] == input.getInput():
+                        current = key
             priority.append(current)
         info["priority"] = priority
 
