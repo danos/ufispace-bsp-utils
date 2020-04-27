@@ -41,15 +41,16 @@ class NEOM8T:
         pass
 
     def init(self):
-        usb_dev = GPSUSB()
+        pass
+        # usb_dev = GPSUSB()
         # Disable NMEA to make reading UBX response possible to imeplement
         # usb_dev.disableNMEAMessage()
         # Workaround:
         # Read all data from buffer before get/set to ensure UBX reponse could be read
-        usb_dev.clearBuffer()
+        # usb_dev.clearBuffer()
 
         # Configure time pluse 2 to output 10MHz
-        usb_dev.configureTimePulse2()
+        # usb_dev.configureTimePulse2()
 
     def deinit(self):
         pass
@@ -80,5 +81,5 @@ class NEOM8T:
         usb_dev = GPSUSB()
         usb_dev.enable()
         usb_dev.configureUartTod()
-        
+
 
