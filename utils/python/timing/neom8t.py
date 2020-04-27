@@ -81,5 +81,5 @@ class NEOM8T:
         usb_dev = GPSUSB()
         usb_dev.enable()
         usb_dev.configureUartTod()
-
+        
 
