@@ -130,6 +130,7 @@ class GPSUSB:
         response = None
 
         read = True
+            
         while read:
             try:
                 resp = ep.read(100)
@@ -151,6 +152,7 @@ class GPSUSB:
                 # Continuous read until timeout
                 read = False
                 self.logger.debug("Read command timeout")
+                raise
 
         return (ack, response)
 
@@ -216,7 +218,6 @@ class GPSUSB:
 
         # Wait for reponse message gone
         # (This code maybe can be removed. Just for safety)
-        time.sleep(0.01)
 
     def configureTimePulse2(self):
         self.configureTimePulse(UBXCommand.cmdCfgTP2)

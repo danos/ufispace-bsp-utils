@@ -223,7 +223,7 @@ class IDT82P33831Operation:
     def initializeInterruptMask(self):
         # Configure default interrupt mask (hardcode)
         # Use default for 0x0D, 0x0E
-        self.reg_map[0x0b].setConfiguration([0x00, 0x00, 0xc0, 0x00])
+        self.reg_map[0x0b].setConfiguration([0x00, 0x00, 0x00, 0x00])
         
     def enbleDPLLInterrupt(self, input):
         # Get mask 
