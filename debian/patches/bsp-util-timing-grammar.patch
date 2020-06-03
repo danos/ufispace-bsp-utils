@@ -1,0 +1,32 @@
+BSP Timing util grammar corrections
+
+VRVDR-50549
+--- a/utils/python/timing/idt82p33831_reg.py
++++ b/utils/python/timing/idt82p33831_reg.py
+@@ -483,7 +483,7 @@
+ 
+         self.reg_map[0x1a5].setConfiguration(config)
+ 
+-        self.logger.info("Successfully configure G.8262 to Option " + str(mode))
++        self.logger.info("Successfully configured G.8262 to Option " + str(mode))
+ 
+     def setDpllHitlessCfg(self, dpll, mode):
+         if dpll == 1:
+@@ -523,7 +523,7 @@
+             time.sleep(1)
+             self.reg_map[reg].setConfiguration(0b00000001)
+ 
+-        self.logger.info("Successfully configure DPLL " + str(dpll) + " fast lcok")
++        self.logger.info("Successfully configured DPLL " + str(dpll) + " fast lock")
+ 
+     def getInputClockPhaseOffsetCfg(self, input):
+         base = 0xc5
+@@ -596,7 +596,7 @@
+                               str(AUTO) + ") to Hold-over(" + str(HOLDOVER) +"))")
+ 
+         self.reg_map[reg].setConfiguration(mode)
+-        self.logger.info("Successfully configure DPLL operation mode")
++        self.logger.info("Successfully configured DPLL operation mode " + str(mode))
+ 
+ class IDT82P33831RegisterConst:
+ 
