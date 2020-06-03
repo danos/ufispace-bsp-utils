@@ -1,3 +1,12 @@
+ufispace-bsp-utils (3.0.10-0vyatta2) unstable; urgency=medium
+
+  [ Rishi Narain ]
+  * BSP Timing util grammar corrections
+
+  [ Charles (Chas) Williams ]
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Wed, 03 Jun 2020 11:05:44 -0400
+
 ufispace-bsp-utils (3.0.10-0vyatta1) unstable; urgency=medium
 
   * Import of 3.0.10 sources
