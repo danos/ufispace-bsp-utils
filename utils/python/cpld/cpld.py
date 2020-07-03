@@ -883,7 +883,61 @@ class CPLD:
                                     self.CPLDMBReg.REG_I2C_IOEXP_RESET, data)
         except Exception as e:
             self.logger.error("Unset MUX reset fail, error:" + str(e))
-            raise 
+            raise
+
+    def mux_reset_by_sfp_port(self, port_num):
+        try:
+            if (port_num >= 0 and port_num <= 7):
+                mux = "RST_I2C_MUX3"
+            elif (port_num >= 8 and port_num <= 15):
+                mux = "RST_I2C_MUX4"
+            elif (port_num >= 16 and port_num <= 23):
+                mux = "RST_I2C_MUX5"
+            elif (port_num >= 24 and port_num <= 27):
+                mux = "RST_I2C_MUX6"
+            else:
+                self.logger.error("Invalid port number: " + str(port_num))
+                return
+
+            self.mux_reset_set(mux)
+            sleep(0.000005)
+            self.mux_reset_unset(mux)
+            sleep(0.000005)
+
+            #Also reset parent MUX of this MUX
+            mux = "RST_I2C_MUX2"
+            
+            self.mux_reset_set(mux)
+            sleep(0.000005)
+            self.mux_reset_unset(mux)
+            sleep(0.000005)
+
+            self.logger.warning("Reset parent mux OK for SFP port " + str(port_num))
+        except Exception as e:
+            self.logger.error("Reset parent mux error for SFP port " + str(port_num))
+            raise
+
+    def mux_reset_by_qsfp_port(self, port_num):
+        try:
+            mux = "RST_I2C_MUX7"
+
+            self.mux_reset_set(mux)
+            sleep(0.000005)
+            self.mux_reset_unset(mux)
+            sleep(0.000005)
+
+            #Also reset parent MUX of this MUX
+            mux = "RST_I2C_MUX2"
+
+            self.mux_reset_set(mux)
+            sleep(0.000005)
+            self.mux_reset_unset(mux)
+            sleep(0.000005)
+
+            self.logger.warning("Reset parent mux OK for QSFP port " + str(port_num))
+        except Exception as e:
+            self.logger.error("Reset parent mux error for QSFP port " + str(port_num))
+            raise
          
     def power_ctrl_set(self, input_str):
         try:

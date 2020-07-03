@@ -22,6 +22,8 @@ from common.logger import Logger
 from eeprom.eeprom import EEPRom
 from const.const import PortStatus
 from gpio.ioexp import IOExpander
+from cpld.cpld import CPLD
+from protocol.i2c import I2C
 
 
 class EEPRomUtility:
@@ -59,6 +61,17 @@ class EEPRomUtility:
             content = bytes(content)
             return {"content":content}
         except Exception as e:
+            ### Error handle
+            # Check if we also can't access other i2c devices
+            i2c = I2C(0)
+            if i2c.check_status() == False:
+                self.logger.error("SFP Port "+ str(port_num) + " might have transceiver issue, please check it")
+            else:
+                self.logger.error("Dump SFP port fail, but other I2C devices is OK")
+
+            #Try to reset i2c mux
+            cpld = CPLD()
+            cpld.mux_reset_by_sfp_port(port_num)
             raise
 
     def dump_qsfp_eeprom(self, port_num, page = None):
@@ -77,4 +90,15 @@ class EEPRomUtility:
             content = bytes(content)
             return {"content":content}
         except Exception as e:
+            ### Error handle
+            # Check if we also can't access other i2c devices
+            i2c = I2C(0)
+            if i2c.check_status() == False:
+                self.logger.error("QSFP Port "+ str(port_num) + " might have transceiver issue, please check it")
+            else:
+                self.logger.error("Dump QSFP port fail, but other I2C devices is OK")
+
+            #Try to reset i2c mux
+            cpld = CPLD()
+            cpld.mux_reset_by_qsfp_port(port_num)
             raise
