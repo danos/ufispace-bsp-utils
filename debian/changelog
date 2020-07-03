@@ -1,3 +1,11 @@
+ufispace-bsp-utils (3.0.11-0vyatta1) unstable; urgency=medium
+
+  * Import of 3.0.11 sources
+  * Add UfiSpace unit testing utilities (Bugfix: VRVDR-52104)
+  * Update local patches (Bugfix: VRVDR-52104)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Fri, 03 Jul 2020 11:55:38 -0400
+
 ufispace-bsp-utils (3.0.10-0vyatta3) unstable; urgency=medium
 
   * Initialize platform BSP using a service (Bugfix: VRVDR-50928)
