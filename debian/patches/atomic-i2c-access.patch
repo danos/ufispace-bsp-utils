@@ -1,6 +1,6 @@
 --- a/utils/python/eeprom/eeprom.py
 +++ b/utils/python/eeprom/eeprom.py
-@@ -131,7 +131,7 @@
+@@ -131,7 +131,7 @@ class EEPRom:
      def __init__(self):
          log = Logger(__name__)
          self.logger = log.getLogger()
@@ -9,7 +9,7 @@
          self.ioexp = IOExpander()
          self.cpld = CPLD()
          
-@@ -152,42 +152,76 @@
+@@ -152,42 +152,76 @@ class EEPRom:
          return output
  
      def _get_sfp_mux_channel(self, port_num):
@@ -98,7 +98,7 @@
          try:
              # Get the bus number of sysfs
              bus_num = self.I2C_BUS_CPU_EEPROM
-@@ -228,21 +262,18 @@
+@@ -228,21 +262,18 @@ class EEPRom:
                  bus.close()
  
      def dump_sfp_eeprom(self, port_num, page = None):
@@ -124,8 +124,8 @@
  
              offset = 0
              data = []
-@@ -284,32 +315,22 @@
-             self.logger.error("Dump SFP+ port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+@@ -284,32 +315,22 @@ class EEPRom:
+             self.logger.error("Dump SFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
              raise
          finally:         
 -            # Disable the channel by port location
@@ -162,7 +162,7 @@
              offset = 0
              data = []
              
-@@ -354,11 +375,5 @@
+@@ -354,11 +375,5 @@ class EEPRom:
              self.logger.error("Dump QSFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
              raise
          finally:
@@ -177,7 +177,7 @@
 +                self._close_sfp_qsfp_bus(bus, mux)
 --- a/utils/python/gpio/ioexp.py
 +++ b/utils/python/gpio/ioexp.py
-@@ -21,15 +21,42 @@
+@@ -21,15 +21,42 @@ import time
  
  from common.logger import Logger
  from smbus import SMBus
@@ -222,7 +222,7 @@
  
  class PCA9535(PCA953x):
  
-@@ -52,9 +79,6 @@
+@@ -52,9 +79,6 @@ class PCA9539(PCA953x):
  
  class IOExpander:
      
@@ -232,7 +232,7 @@
      I2C_ADDR_TPS53667 = 0x61
      ROV_List = ['N/A' , '1.00' , '0.95' , 'N/A' , '1.04']
      TPS53667_voltage = [
-@@ -101,7 +125,7 @@
+@@ -101,7 +125,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
          },
          "9535_SFP1": {
@@ -241,7 +241,7 @@
              "port_idx": {
                  "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
                  "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
-@@ -128,7 +152,7 @@
+@@ -128,7 +152,7 @@ class IOExpander:
              "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0x0, "output_port_1": 0x0 
          },
          "9535_SFP2": {
@@ -250,7 +250,7 @@
              "port_idx": {
                  "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
                  "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
-@@ -154,7 +178,7 @@
+@@ -154,7 +178,7 @@ class IOExpander:
              "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0x0, "output_port_1": 0x0
          },
          "9535_QSFP": {
@@ -259,7 +259,7 @@
              "init_cfg": [
                  {"gpio": GPIO_BASE-48, "direction": "out", "value": 0},  # gpio463 IO_1.7 NI
                  {"gpio": GPIO_BASE-49, "direction": "out", "value": 0},  # gpio462 IO_1.6 NI
-@@ -176,7 +200,7 @@
+@@ -176,7 +200,7 @@ class IOExpander:
              "config_0": 0x33, "config_1": 0x00, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0x0, "output_port_1": 0x30
          },
          "9535_SFP3": {
@@ -268,7 +268,7 @@
              "port_idx": {
                  "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
                  "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
-@@ -203,7 +227,7 @@
+@@ -203,7 +227,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
          },
          "9535_SFP4": {
@@ -277,7 +277,7 @@
              "port_idx": {
                  "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
                  "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
-@@ -229,7 +253,7 @@
+@@ -229,7 +253,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xf0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xf0
          },
          "9535_SFP5": {
@@ -286,7 +286,7 @@
              "port_idx": {
                  "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
                  "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
-@@ -256,7 +280,7 @@
+@@ -256,7 +280,7 @@ class IOExpander:
              "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
          },
          "9535_SFP6": {
@@ -295,7 +295,7 @@
              "port_idx": {
                  "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
                  "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
-@@ -282,7 +306,7 @@
+@@ -282,7 +306,7 @@ class IOExpander:
              "config_0": 0x0, "config_1": 0x0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
          },
          "9535_SFP7": {
@@ -304,7 +304,7 @@
              "port_idx": {
                  "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
                  "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
-@@ -309,7 +333,7 @@
+@@ -309,7 +333,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
          },
          "9535_SFP8": {
@@ -313,7 +313,7 @@
              "port_idx": {
                  "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
                  "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
-@@ -335,7 +359,7 @@
+@@ -335,7 +359,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xf0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xf0
          },
          "9535_SFP9": {
@@ -322,7 +322,7 @@
              "port_idx": {
                  "0": 8, "1": 9, "2": 10, "3": 11, "4": 12, "5": 13, "6": 14,
                  "7": 15, "8": 0, "9": 1, "10": 2, "11": 3, "12": 4, "13": 5,
-@@ -362,7 +386,7 @@
+@@ -362,7 +386,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xff, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xff
          },
          "9535_SFP10": {
@@ -331,7 +331,7 @@
              "port_idx": {
                  "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
                  "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
-@@ -388,7 +412,7 @@
+@@ -388,7 +412,7 @@ class IOExpander:
              "config_0": 0xff, "config_1": 0xf0, "polarity_inv_0": 0x0, "polarity_inv_1": 0x0, "output_port_0": 0xff, "output_port_1": 0xf0
          },
          "9535_BRD": {
@@ -340,7 +340,7 @@
              "port_idx": {
                  "24": 0, "25": 1, "26": 2, "27": 3, "16": 8, "17": 9, "18": 10,
                  "19": 11, "20": 12, "21": 13, "22": 14, "23": 15
-@@ -423,6 +447,14 @@
+@@ -423,6 +447,14 @@ class IOExpander:
          self.logger = log.getLogger()
          self.IOExpanders = self.SIAD_IOExpanders
          self.ordered_ioexps = self.SIAD_IOExpanders_Order_List
@@ -355,7 +355,7 @@
  
      def _create_sysfs(self, path_parent, ioexp):
          try:
-@@ -558,21 +590,11 @@
+@@ -558,21 +590,11 @@ class IOExpander:
          # Create sysfs, export gpio and initial gpio
          for ioexp_name in self.ordered_ioexps:
              try:
@@ -380,7 +380,7 @@
  
                  # Set commnad config 0 & 1
                  bus.write_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_CONF, self.IOExpanders[ioexp_name]["config_0"])
-@@ -614,16 +636,8 @@
+@@ -614,16 +636,8 @@ class IOExpander:
              except Exception as e:
                  raise
              finally:
@@ -398,7 +398,7 @@
  
      def deinit(self):
          try:
-@@ -633,12 +647,10 @@
+@@ -633,12 +647,10 @@ class IOExpander:
  
      def qsfp_get_presence(self, port_num):
          try:
@@ -414,7 +414,7 @@
              
              # Get data
              data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
-@@ -654,21 +666,15 @@
+@@ -654,21 +666,15 @@ class IOExpander:
              raise
              
          finally:
@@ -439,7 +439,7 @@
              
              # Get data
              data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT1_OUT)
-@@ -692,21 +698,15 @@
+@@ -692,21 +698,15 @@ class IOExpander:
              raise
              
          finally:
@@ -464,7 +464,7 @@
              
              # Get data
              data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT1_OUT)
-@@ -722,21 +722,15 @@
+@@ -722,21 +722,15 @@ class IOExpander:
              raise
              
          finally:
@@ -489,7 +489,7 @@
              
              # Get data
              ori_data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT1_OUT)
-@@ -756,26 +750,21 @@
+@@ -756,26 +750,21 @@ class IOExpander:
              raise
              
          finally:
@@ -520,7 +520,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
-@@ -794,25 +783,21 @@
+@@ -794,25 +783,21 @@ class IOExpander:
              raise
              
          finally:
@@ -550,7 +550,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
-@@ -831,25 +816,21 @@
+@@ -831,25 +816,21 @@ class IOExpander:
              raise
              
          finally:
@@ -580,7 +580,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_IN)
-@@ -868,25 +849,21 @@
+@@ -868,25 +849,21 @@ class IOExpander:
              raise
              
          finally:
@@ -610,7 +610,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
-@@ -925,25 +902,21 @@
+@@ -925,25 +902,21 @@ class IOExpander:
              raise
              
          finally:
@@ -640,7 +640,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
-@@ -962,11 +935,8 @@
+@@ -962,11 +935,8 @@ class IOExpander:
              raise
              
          finally:
@@ -653,7 +653,7 @@
                  
      def sfp_set_port_status(self, port_num, cfg):
          try:
-@@ -975,12 +945,13 @@
+@@ -975,12 +945,13 @@ class IOExpander:
              if port_num <= 15:
                  dev_addr = self.IOExpanders["9535_SFP1"]["address"]
                  mux_chanl = self.IOExpanders["9535_SFP1"]["channel"]
@@ -669,7 +669,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
-@@ -1019,25 +990,21 @@
+@@ -1019,25 +990,21 @@ class IOExpander:
              raise
              
          finally:
@@ -699,7 +699,7 @@
              
              # Get data
              data0 = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
-@@ -1056,21 +1023,16 @@
+@@ -1056,21 +1023,16 @@ class IOExpander:
              raise
              
          finally:
@@ -725,7 +725,7 @@
              
              # Get data
              data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
-@@ -1103,11 +1065,8 @@
+@@ -1103,11 +1065,8 @@ class IOExpander:
              raise
              
          finally:
@@ -738,7 +738,7 @@
      
      def rov_get_voltage(self):
          try:
-@@ -1181,9 +1140,9 @@
+@@ -1181,9 +1140,9 @@ class IOExpander:
              
              dev_addr = self.IOExpanders["9535_BRD"]["address"]
              mux_chanl = self.IOExpanders["9535_BRD"]["channel"]
@@ -751,7 +751,7 @@
              
              # Get data
              data = bus.read_byte_data(dev_addr, PCA9535_CMD.PCA9535_REG_PORT0_OUT)
-@@ -1216,8 +1175,5 @@
+@@ -1216,8 +1175,5 @@ class IOExpander:
              raise
              
          finally:
@@ -763,7 +763,7 @@
 +                ioexp.close_channel_bus(bus)
 --- a/utils/python/i2c_mux/i2c_mux.py
 +++ b/utils/python/i2c_mux/i2c_mux.py
-@@ -21,12 +21,22 @@
+@@ -21,12 +21,22 @@ import sys
  from common.logger import Logger
  
  class PCA954x:
@@ -787,7 +787,7 @@
  
  class PCA9548(PCA954x):
  
-@@ -47,6 +57,7 @@
+@@ -47,6 +57,7 @@ class I2CMux:
      I2C_ADDR_9548_SFP3 = 0x73
      I2C_ADDR_9548_SFP4 = 0x74
      I2C_ADDR_9546_QSFP = 0x70
@@ -795,7 +795,7 @@
  
      NUM_I801_DEVICE = 0
      PATH_SYS_I2C_DEVICES = "/sys/bus/i2c/devices"
-@@ -102,10 +113,16 @@
+@@ -102,10 +113,16 @@ class I2CMux:
                                    self.NUM_I801_DEVICE + 39,
                                    self.NUM_I801_DEVICE + 40)
  
@@ -812,7 +812,7 @@
  
          # Sysfs path
          self.PATH_MUX_9546_ROOT_CHAN0 = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.NUM_MUX_9546_ROOT[0])
-@@ -117,6 +134,8 @@
+@@ -117,6 +134,8 @@ class I2CMux:
          self.PATH_MUX_9548_SFP_PARENT = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.I2C_BUS_MUX_SFP)
          self.PATH_MUX_9546_QSFP_CHAN0 = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.NUM_MUX_9546_QSFP[0])
          self.PATH_MUX_9546_QSFP_PARENT = self.PATH_SYS_I2C_DEVICES + "/i2c-" + str(self.I2C_BUS_MUX_QSFP)
@@ -821,7 +821,7 @@
  
          self.MUXs = {
              "9546_ROOT": PCA9546("ROOT", self.I2C_ADDR_9546_ROOT, self.I2C_BUS_MUX_ROOT, self.NUM_MUX_9546_ROOT),
-@@ -124,7 +143,8 @@
+@@ -124,7 +143,8 @@ class I2CMux:
              "9548_SFP2": PCA9548("SFP2", self.I2C_ADDR_9548_SFP2, self.I2C_BUS_MUX_SFP, self.NUM_MUX_9548_SFP2),
              "9548_SFP3": PCA9548("SFP3", self.I2C_ADDR_9548_SFP3, self.I2C_BUS_MUX_SFP, self.NUM_MUX_9548_SFP3),
              "9548_SFP4": PCA9548("SFP4", self.I2C_ADDR_9548_SFP4, self.I2C_BUS_MUX_SFP, self.NUM_MUX_9548_SFP4),
@@ -831,7 +831,7 @@
          }
  
      def _create_sysfs(self, path_ch0, path_parent, i2c_mux):
-@@ -135,6 +155,13 @@
+@@ -135,6 +155,13 @@ class I2CMux:
                  with open(path_parent + "/new_device", 'w') as f:
                      self.logger.info(i2c_mux.NAME + " " + hex(i2c_mux.address))
                      f.write(i2c_mux.NAME + " " + hex(i2c_mux.address))
@@ -845,7 +845,7 @@
                  self.logger.info("Register " + i2c_mux.name + " in sysfs")
          except Exception as e:
              self.logger.error("Register MUX " + i2c_mux.name + " to sysfs fail, error: ", str(e))
-@@ -195,5 +222,13 @@
+@@ -195,5 +222,13 @@ class I2CMux:
              self.logger.error("Create MUX 9546 QSFP fail, error: ", str(e))
              raise
  
@@ -861,7 +861,7 @@
          pass
 --- a/utils/python/timing/idt82p33831_reg.py
 +++ b/utils/python/timing/idt82p33831_reg.py
-@@ -21,6 +21,7 @@
+@@ -21,6 +21,7 @@ import time
  from smbus import SMBus
  from common.logger import Logger
  from cpld.cpld import CPLD
@@ -869,7 +869,7 @@
  
  '''
  This class should be re-factor when it's too complicated to maintain.
-@@ -573,7 +574,7 @@
+@@ -627,7 +628,7 @@ class DPLLRegister(abc.ABC):
      PAGE = 0x7F    
          
      I2C_ADDR_MUX_9546 = 0x75
@@ -878,7 +878,7 @@
  
      @abc.abstractmethod
      def setConfiguration(self, data):
-@@ -583,6 +584,42 @@
+@@ -637,6 +638,42 @@ class DPLLRegister(abc.ABC):
      def getConfiguration(self, data):
          return None
  
@@ -921,7 +921,7 @@
  class DPLLSingleRegister(DPLLRegister):
  
      def __init__(self, bus, page, register):
-@@ -590,23 +627,15 @@
+@@ -644,23 +681,15 @@ class DPLLSingleRegister(DPLLRegister):
          self.page = page
          self.register = register
          self.cpld = CPLD()
@@ -947,7 +947,7 @@
  
              bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
              bus.write_byte_data(DPLLRegister.ADDR, self.register, data)
-@@ -614,34 +643,15 @@
+@@ -668,34 +697,15 @@ class DPLLSingleRegister(DPLLRegister):
          except:
              raise
          finally:
@@ -984,7 +984,7 @@
              bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
              b = bus.read_byte_data(DPLLRegister.ADDR, self.register)
              bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, 0)
-@@ -650,16 +660,7 @@
+@@ -704,16 +714,7 @@ class DPLLSingleRegister(DPLLRegister):
          except:
              raise
          finally:
@@ -1002,7 +1002,7 @@
  
  class DPLLMultiRegister(DPLLRegister):
  
-@@ -670,25 +671,16 @@
+@@ -724,25 +725,16 @@ class DPLLMultiRegister(DPLLRegister):
          self.register = register
          self.length = length
          self.cpld = CPLD()
@@ -1030,7 +1030,7 @@
              bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
              for idx, datum in enumerate(data):
                  bus.write_byte_data(DPLLRegister.ADDR, self.register+idx, datum)
-@@ -696,35 +688,16 @@
+@@ -750,35 +742,16 @@ class DPLLMultiRegister(DPLLRegister):
          except:
              raise
          finally:
@@ -1068,7 +1068,7 @@
              bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
              for idx in range(0, self.length):
                  data.append(bus.read_byte_data(DPLLRegister.ADDR, self.register+idx))
-@@ -734,16 +707,7 @@
+@@ -788,16 +761,7 @@ class DPLLMultiRegister(DPLLRegister):
          except:
              raise
          finally:
@@ -1086,7 +1086,7 @@
  
  class APLLRegister:
  
-@@ -754,70 +718,68 @@
+@@ -808,70 +772,68 @@ class APLLRegister:
          self.BUS = bus
          self.register = register
          self.cpld = CPLD()
@@ -1200,7 +1200,7 @@
 +            self._close_channel_bus(bus)
 --- a/utils/python/cpld/cpld.py
 +++ b/utils/python/cpld/cpld.py
-@@ -27,6 +27,7 @@
+@@ -27,6 +27,7 @@ from cpld.cpld_reg import CPLDCPUReg
  from protocol.lpc import LPC
  from protocol.lpc import LPCDevType
  from smbus import SMBus
@@ -1208,7 +1208,7 @@
  
  class PCA9535_CMD:
      
-@@ -72,7 +73,7 @@
+@@ -72,7 +73,7 @@ class CPLD:
      BUILD_REV_A4_STR = "A4"
  
      I2C_ADDR_9546_ROOT = 0x75
@@ -1217,7 +1217,7 @@
      I2C_ADDR_BRD_ID = 0x20
      
      InterruptMaskConst = {
-@@ -143,6 +144,7 @@
+@@ -143,6 +144,7 @@ class CPLD:
          log = Logger(__name__)
          self.logger = log.getLogger()
          self.lpc = LPC()
@@ -1225,7 +1225,7 @@
          # Get hardware version
          board_id = self.lpc.regGet(LPCDevType.CPLD_ON_MAIN_BOARD, 0x00)
          hw_rev = (board_id & 0b00001100) >> 2
-@@ -163,37 +165,40 @@
+@@ -163,37 +165,40 @@ class CPLD:
      def deinit(self):
          pass
  
@@ -1283,7 +1283,7 @@
          try:
 --- a/utils/python/platform_utility.py
 +++ b/utils/python/platform_utility.py
-@@ -72,6 +72,10 @@
+@@ -72,6 +72,10 @@ class PlatformUtility:
              # I2C Dev
              subprocess.run(['modprobe', 'i2c_dev'])
  
