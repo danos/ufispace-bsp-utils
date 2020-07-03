@@ -281,7 +281,7 @@ class EEPRom:
 
             return data
         except Exception as e:
-            self.logger.error("Dump SFP+ port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+            self.logger.error("Dump SFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
             raise
         finally:         
             # Disable the channel by port location
