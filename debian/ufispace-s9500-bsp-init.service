@@ -1,5 +1,5 @@
 [Service]
-ExecStart=/bin/sh -c 'if dmidecode | grep -qw 'T77O994T01_R02' || dmidecode | grep -qw 'S9500-30XS'; then python3 /usr/lib/python3/dist-packages/platform_utility.py init; fi'
+ExecStart=/bin/bash -c 'if [ $(/opt/vyatta/bin/vyatta-platform-util --what-am-i) = "ufi.s9500-30xs" ]; then python3 /usr/lib/python3/dist-packages/platform_utility.py init; fi'
 Type=oneshot
 RemainAfterExit=yes
 StandardOutput=syslog
