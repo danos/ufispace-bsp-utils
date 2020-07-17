@@ -1,6 +1,6 @@
 --- a/utils/python/eeprom/eeprom.py
 +++ b/utils/python/eeprom/eeprom.py
-@@ -131,7 +131,7 @@ class EEPRom:
+@@ -132,7 +132,7 @@ class EEPRom:
      def __init__(self):
          log = Logger(__name__)
          self.logger = log.getLogger()
@@ -9,7 +9,7 @@
          self.ioexp = IOExpander()
          self.cpld = CPLD()
          
-@@ -152,42 +152,76 @@ class EEPRom:
+@@ -153,42 +153,76 @@ class EEPRom:
          return output
  
      def _get_sfp_mux_channel(self, port_num):
@@ -98,7 +98,7 @@
          try:
              # Get the bus number of sysfs
              bus_num = self.I2C_BUS_CPU_EEPROM
-@@ -228,21 +262,18 @@ class EEPRom:
+@@ -229,21 +263,18 @@ class EEPRom:
                  bus.close()
  
      def dump_sfp_eeprom(self, port_num, page = None):
@@ -124,8 +124,8 @@
  
              offset = 0
              data = []
-@@ -284,32 +315,22 @@ class EEPRom:
-             self.logger.error("Dump SFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+@@ -309,32 +340,22 @@ class EEPRom:
+                 self.logger.warning("I2C bus is normal")
              raise
          finally:         
 -            # Disable the channel by port location
@@ -162,8 +162,8 @@
              offset = 0
              data = []
              
-@@ -354,11 +375,5 @@ class EEPRom:
-             self.logger.error("Dump QSFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+@@ -404,11 +425,5 @@ class EEPRom:
+                 self.logger.warning("I2C bus is normal")
              raise
          finally:
 -            # Disable the channel by port location
@@ -1225,7 +1225,7 @@
          # Get hardware version
          board_id = self.lpc.regGet(LPCDevType.CPLD_ON_MAIN_BOARD, 0x00)
          hw_rev = (board_id & 0b00001100) >> 2
-@@ -163,37 +165,40 @@ class CPLD:
+@@ -170,37 +172,40 @@ class CPLD:
      def deinit(self):
          pass
  
@@ -1283,7 +1283,7 @@
          try:
 --- a/utils/python/platform_utility.py
 +++ b/utils/python/platform_utility.py
-@@ -72,6 +72,10 @@ class PlatformUtility:
+@@ -75,6 +75,10 @@ class PlatformUtility:
              # I2C Dev
              subprocess.run(['modprobe', 'i2c_dev'])
  
