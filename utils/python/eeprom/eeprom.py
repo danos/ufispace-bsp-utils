@@ -23,6 +23,7 @@ from i2c_mux.i2c_mux import I2CMux
 from gpio.ioexp import IOExpander
 from smbus import SMBus
 from cpld.cpld import CPLD
+from protocol.i2c import I2C
 
 class DATA_INFO:
     SFP = {
@@ -282,6 +283,17 @@ class EEPRom:
             return data
         except Exception as e:
             self.logger.error("Dump SFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+            ### Error handle
+            # Check if we also can't access other i2c devices
+            i2c = I2C(0)
+            if i2c.check_status() == False:
+                self.logger.error("SFP Port "+ str(port_num) + " might have transceiver issue, please check it")
+            else:
+                self.logger.error("Dump SFP port fail, but other I2C devices is OK")
+
+            #Try to reset i2c mux
+            cpld = CPLD()
+            cpld.mux_reset_by_sfp_port(port_num)
             raise
         finally:         
             # Disable the channel by port location
@@ -352,6 +364,18 @@ class EEPRom:
             return data
         except Exception as e:
             self.logger.error("Dump QSFP port(" + str(port_num) + ") EEPROM fail, error: " + str(e))
+
+            ### Error handle
+            # Check if we also can't access other i2c devices
+            i2c = I2C(0)
+            if i2c.check_status() == False:
+                self.logger.error("QSFP Port "+ str(port_num) + " might have transceiver issue, please check it")
+            else:
+                self.logger.error("Dump QSFP port fail, but other I2C devices is OK")
+
+            #Try to reset i2c mux
+            cpld = CPLD()
+            cpld.mux_reset_by_qsfp_port(port_num)
             raise
         finally:
             # Disable the channel by port location

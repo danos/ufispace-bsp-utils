@@ -65,6 +65,9 @@ class PlatformUtility:
             if mod != "":
                 subprocess.run(['rmmod', 'gpio_ich'])
 
+            # CPLD
+            self.cpld.init()
+
             # Mount kernel modules
             # I2C I801
             subprocess.run(['modprobe', 'i2c_i801'])
@@ -77,9 +80,6 @@ class PlatformUtility:
 
             # GPIO
             self.ioexp.init()
-
-            # CPLD
-            self.cpld.init()
 
             # Timing Modules
 
