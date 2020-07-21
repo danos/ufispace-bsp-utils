@@ -1,5 +1,6 @@
 debian/i2c_i801.conf etc/modprobe.d
 debian/ufispace-s9500-bsp-init.conf lib/systemd/system/vyatta-dataplane.service.d/
+debian/ufispace-s9500-bsp-init.conf lib/systemd/system/vyatta-sfpd.service.d/
 utils/ut/peripheral_ut.py opt/ufispace/bin
 utils/ut/test_auto_timing.py opt/ufispace/bin
 utils/ut/timing_ut.py opt/ufispace/bin
