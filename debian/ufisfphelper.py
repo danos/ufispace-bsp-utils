@@ -1,19 +1,22 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# Copyright (c) 2019, AT&T Intellectual Property.  All rights reserved.
+# Copyright (c) 2019-2020, AT&T Intellectual Property.  All rights reserved.
 #
 # SPDX-License-Identifier: LGPL-2.1-only
 
 
+import errno
 import os
 import select
 import subprocess
 from Interrupt_utility import InterruptUtility
 from QSFP_utility import QSFPUtility
 from SFP_utility import SFPUtility
+from cpld.cpld import CPLD
 from eeprom.eeprom import EEPRom
 from vyatta.platform.basesfphelper import BaseSfpHelper
 from vyatta.platform.basesfphelper import ModuleNotPresentException
+from vyatta.phy.basephy import PhyNotFoundException
 
 class UfiSfpHelper(BaseSfpHelper):
 
@@ -24,10 +27,35 @@ class UfiSfpHelper(BaseSfpHelper):
         self.eeprom = EEPRom()
 
     class UfiBus():
-        def __init__(self, porttype, port):
+        def __init__(self, resource, port):
+            self.resource = resource
+            self.port = port
+
+        def read_word_data(self, addr, cmd):
+            try:
+                return self.resource.bus.read_word_data(addr, cmd)
+            except OSError as e:
+                if e.errno == errno.EBUSY:
+                    self.resource.reset_mux(self.port)
+                    raise PhyNotFoundException('module failed to respond; MUX reset')
+                raise e
+
+        def write_word_data(self, addr, cmd, val):
+            try:
+                self.resource.bus.write_word_data(addr, cmd, val)
+            except OSError as e:
+                if e.errno == errno.EBUSY:
+                    self.resource.reset_mux(self.port)
+                    raise PhyNotFoundException('module failed to respond; MUX reset')
+                raise e
+
+    class UfiBusResource():
+        def __init__(self, parent, porttype, port):
+            self.parent = parent
             self.porttype = porttype
             self.port = port
             self.eeprom = EEPRom()
+            self.cpld = CPLD()
 
         def open(self):
             if self.porttype == 'SFP':
@@ -45,16 +73,24 @@ class UfiSfpHelper(BaseSfpHelper):
             else:
                 raise Exception("unexpected port type {}".format(self.porttype))
 
+        def reset_mux(self, port):
+            if self.porttype == 'SFP':
+                return self.cpld.mux_reset_by_sfp_port(port)
+            elif self.porttype == 'QSFP':
+                return self.cpld.mux_reset_by_qsfp_port(port)
+            else:
+                raise Exception("unexpected port type {}".format(self.porttype))
+
         def __enter__(self):
             self.bus = self.open()
-            return self.bus
+            return self.parent.UfiBus(self, self.port)
 
         def __exit__(self, *args):
             self.close(self.bus)
             self.bus = None
 
     def get_bus(self, porttype, port):
-        return self.UfiBus(porttype, port)
+        return self.UfiBusResource(self, porttype, port)
 
     def set_sfp_state(self, portname, enabled):
         if portname.startswith('xe'):
