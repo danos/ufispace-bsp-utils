@@ -18,36 +18,28 @@
 import os
 import sys
 from smbus import SMBus
+from protocol.lpc import LPC
+from protocol.lpc import LPCDevType
 
 from common.logger import Logger
 
 class I2C:
-    I2C_DEV_CHK = [[
-        {"name": "CPU EEPROM", "addr": 0x57},
-        {"name": "CPU TMP75", "addr": 0x4f}
-    ]]
-
     def __init__(self, busnum=0):
         log = Logger(__name__)
         self.logger = log.getLogger()
         self.busnum = busnum
+        self.lpc = LPC()
 
     def check_status(self):
         try:
-            bus = SMBus(self.busnum)
-            if self.busnum >= len(self.I2C_DEV_CHK):
-                self.logger.error("Bad I2C bus num: " + str(self.busnum))
+            hst_sts = self.lpc.regGet(LPCDevType.SMBUS_MEM,0x0)
+
+            #bit 5 is in use, and bit 0 is host busy
+            if (hst_sts & 0x01) != 0:
+                self.logger.error("i2c bus is busy")
                 return False
-
-            # Try to read i2c devices to check bus health
-            for dev in self.I2C_DEV_CHK[self.busnum]:
-                bus.read_byte(dev["addr"])
-            
-            return True
+            else:
+                return True
         except Exception as e:
-            self.logger.error("Bad I2C bus " + str(self.busnum) + " status, err: " + repr(e))
+            self.logger.error("Error to check I2C bus status, err:" + repr(e))
             return False
-        finally:
-            if bus != None:
-                bus.close()
-

@@ -286,14 +286,27 @@ class EEPRom:
             ### Error handle
             # Check if we also can't access other i2c devices
             i2c = I2C(0)
-            if i2c.check_status() == False:
+            i2c_status = i2c.check_status()
+            if i2c_status == False:
                 self.logger.error("SFP Port "+ str(port_num) + " might have transceiver issue, please check it")
             else:
-                self.logger.error("Dump SFP port fail, but other I2C devices is OK")
+                self.logger.error("Dump SFP port fail, but I2C bus is not busy")
 
             #Try to reset i2c mux
             cpld = CPLD()
             cpld.mux_reset_by_sfp_port(port_num)
+
+            #Check i2c bus is normal or not
+            recheck_count = 0
+            while i2c_status == False and recheck_count < 3:
+                i2c_status = i2c.check_status()
+                recheck_count = recheck_count + 1
+                sleep(0.01)
+
+            if i2c_status == False:
+                self.logger.error("I2C bus is still busy")
+            else:
+                self.logger.warning("I2C bus is normal")
             raise
         finally:         
             # Disable the channel by port location
@@ -368,14 +381,27 @@ class EEPRom:
             ### Error handle
             # Check if we also can't access other i2c devices
             i2c = I2C(0)
-            if i2c.check_status() == False:
+            i2c_status = i2c.check_status()
+            if i2c_status == False:
                 self.logger.error("QSFP Port "+ str(port_num) + " might have transceiver issue, please check it")
             else:
-                self.logger.error("Dump QSFP port fail, but other I2C devices is OK")
+                self.logger.error("Dump QSFP port fail, but I2C bus is not busy")
 
             #Try to reset i2c mux
             cpld = CPLD()
             cpld.mux_reset_by_qsfp_port(port_num)
+            
+            #Check i2c bus is normal or not
+            recheck_count = 0
+            while i2c_status == False and recheck_count < 3:
+                i2c_status = i2c.check_status()
+                recheck_count = recheck_count + 1
+                sleep(0.01)
+
+            if i2c_status == False:
+                self.logger.error("I2C bus is still busy")
+            else:
+                self.logger.warning("I2C bus is normal")
             raise
         finally:
             # Disable the channel by port location
