@@ -66,12 +66,11 @@ class EEPRomUtility:
             i2c = I2C(0)
             if i2c.check_status() == False:
                 self.logger.error("SFP Port "+ str(port_num) + " might have transceiver issue, please check it")
+                #Try to reset i2c mux
+                cpld = CPLD()
+                cpld.mux_reset_by_sfp_port(port_num)
             else:
-                self.logger.error("Dump SFP port fail, but other I2C devices is OK")
-
-            #Try to reset i2c mux
-            cpld = CPLD()
-            cpld.mux_reset_by_sfp_port(port_num)
+                self.logger.error("Dump SFP port ever failed, but I2C bus is OK")
             raise
 
     def dump_qsfp_eeprom(self, port_num, page = None):
@@ -95,10 +94,9 @@ class EEPRomUtility:
             i2c = I2C(0)
             if i2c.check_status() == False:
                 self.logger.error("QSFP Port "+ str(port_num) + " might have transceiver issue, please check it")
+                #Try to reset i2c mux
+                cpld = CPLD()
+                cpld.mux_reset_by_qsfp_port(port_num)
             else:
-                self.logger.error("Dump QSFP port fail, but other I2C devices is OK")
-
-            #Try to reset i2c mux
-            cpld = CPLD()
-            cpld.mux_reset_by_qsfp_port(port_num)
+                self.logger.error("Dump QSFP port ever failed, but I2C bus is OK")
             raise

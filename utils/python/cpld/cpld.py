@@ -158,7 +158,14 @@ class CPLD:
             self.SMBUSMEMReg = my_class()
 
     def init(self):
-        pass
+        muxs = ["RST_I2C_MUX3","RST_I2C_MUX4","RST_I2C_MUX5","RST_I2C_MUX6","RST_I2C_MUX7","RST_I2C_MUX2"]
+
+        for mux in muxs:
+            self.mux_reset_set(mux)
+            sleep(0.000005)
+            self.mux_reset_unset(mux)
+            sleep(0.000005)
+            self.logger.info("Reset MUX: "+mux)
 
     def deinit(self):
         pass
