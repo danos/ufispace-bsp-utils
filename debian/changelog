@@ -1,3 +1,16 @@
+ufispace-bsp-utils (3.0.13-0vyatta1) UNRELEASED; urgency=medium
+
+  [ Charles (Chas) Williams ]
+  * Import of 3.0.12 sources
+
+  [ Robert Shearman ]
+  * Import of 3.0.13 sources
+
+  [ Charles (Chas) Williams ]
+  * Update local patches for new release (Bugfix: VRVDR-52104)
+
+ -- Robert Shearman <robert.shearman@att.com>  Tue, 11 Aug 2020 16:16:10 +0100
+
 ufispace-bsp-utils (3.0.11-0vyatta2) unstable; urgency=medium
 
   [ Charles (Chas) Williams ]
