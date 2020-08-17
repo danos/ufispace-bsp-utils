@@ -1,0 +1,11 @@
+ufispace-bsp-utils: fixup missing time import
+--- a/utils/python/eeprom/eeprom.py
++++ b/utils/python/eeprom/eeprom.py
+@@ -17,6 +17,7 @@
+ ###########################################################################
+ import os
+ import sys
++from time import sleep
+ 
+ from common.logger import Logger
+ from i2c_mux.i2c_mux import I2CMux

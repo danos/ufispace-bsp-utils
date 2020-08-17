@@ -7,3 +7,4 @@ fix-qsfp-laser.patch
 eeprom-page-access.patch
 fix-rov-access.patch
 bsp-util-timing-grammar.patch
+fix-missing-import-eeprom.patch
