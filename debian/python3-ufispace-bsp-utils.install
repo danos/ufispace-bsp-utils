@@ -1,3 +1,4 @@
 debian/i2c_i801.conf etc/modprobe.d
 debian/ufispace-s9500-bsp-init.conf lib/systemd/system/vyatta-dataplane.service.d/
 debian/ufispace-s9500-bsp-init.conf lib/systemd/system/vyatta-sfpd.service.d/
+debian/99-ignore-ufi-s9500-30xs-modem.rules lib/udev/rules.d/
