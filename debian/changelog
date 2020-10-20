@@ -1,3 +1,9 @@
+ufispace-bsp-utils (3.0.13-0vyatta3) unstable; urgency=medium
+
+  * udev: block modemmanager from the GPS (Bugfix: VRVDR-53325)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Tue, 20 Oct 2020 17:32:23 -0400
+
 ufispace-bsp-utils (3.0.13-0vyatta2) unstable; urgency=medium
 
   [ Paul Widdop ]
