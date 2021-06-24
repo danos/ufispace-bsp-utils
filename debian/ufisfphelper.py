@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# Copyright (c) 2019-2020, AT&T Intellectual Property.  All rights reserved.
+# Copyright (c) 2019-2021, AT&T Intellectual Property.  All rights reserved.
 #
 # SPDX-License-Identifier: LGPL-2.1-only
 
@@ -223,6 +223,7 @@ class UfiSfpHelper(BaseSfpHelper):
 
         # gather state at boot
         self._walk_ports(sfp, qsfp)
+        self.sfpd.boot_walk_complete()
 
         # disable interrupts first, then load module
         interrupt_utility = InterruptUtility()
