@@ -1,5 +1,10 @@
+[Unit]
+Description=Ufispace s9500 init
+After=vyatta-platform-name.service
+ConditionPathExists=/var/run/vyatta/platform/ufi.s9500-30xs
+
 [Service]
-ExecStart=/bin/bash -c 'if [ $(/opt/vyatta/bin/vyatta-platform-util --what-am-i) = "ufi.s9500-30xs" ]; then python3 /usr/lib/python3/dist-packages/platform_utility.py init; fi'
+ExecStart=python3 /usr/lib/python3/dist-packages/platform_utility.py init
 Type=oneshot
 RemainAfterExit=yes
 StandardOutput=syslog
