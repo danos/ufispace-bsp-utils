@@ -21,11 +21,6 @@ def set_led(name, status, colour, blink):
         sys.exit(-1)
 
 if __name__ == "__main__":
-    platform = subprocess.run(["/opt/vyatta/bin/vyatta-platform-util", "--what-am-i"],
-                               check=True, stdout=subprocess.PIPE,
-                               universal_newlines=True).stdout.rstrip("\n")
-    if platform != "ufi.s9500-30xs":
-        sys.exit(0)
     usage_string = """
         Usage ufi-stat-led-control <led name> <led status> <led colour> <blink status>
         led name = sys|pow|fan|gps|syn
