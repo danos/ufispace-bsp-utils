@@ -1,3 +1,10 @@
+ufispace-bsp-utils (3.0.13-0vyatta5) unstable; urgency=medium
+
+  [ Thomas Kiely ]
+  * Notify SFPD when initial SPF walk at boot is complete
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Tue, 13 Jul 2021 16:26:56 -0400
+
 ufispace-bsp-utils (3.0.13-0vyatta4) unstable; urgency=medium
 
   [ Srinivas Narayan ]
