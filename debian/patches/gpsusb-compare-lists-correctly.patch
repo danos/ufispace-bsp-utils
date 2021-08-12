@@ -1,0 +1,12 @@
+--- a/utils/python/timing/gpsusb.py
++++ b/utils/python/timing/gpsusb.py
+@@ -145,7 +145,8 @@ class GPSUSB:
+                 elif msg.class_id.tolist() == ubx_utils.CLASS_ACK_NAK:
+                     ack = False
+                     read = False
+-                elif msg.class_id.tolist() == class_id:
++                elif msg.class_id.tolist() == class_id.tolist():
++                    ack = True
+                     response = msg.getMessage()
+                     read = False
+             except:
