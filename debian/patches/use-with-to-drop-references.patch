@@ -1,0 +1,43 @@
+--- a/utils/python/timing/gpsusb.py
++++ b/utils/python/timing/gpsusb.py
+@@ -181,28 +181,28 @@ class GPSUSB:
+ 
+     def _gps_set(self, cmd):
+         # Prepare to read
+-        pool = ThreadPool(processes=1)
+-        msg = UBXMessage(cmd)
+-        async_result = pool.apply_async(self._read, (msg.class_id,))
++        with ThreadPool(processes=1) as pool:
++            msg = UBXMessage(cmd)
++            async_result = pool.apply_async(self._read, (msg.class_id,))
+ 
+-        # Write command
+-        self._write(cmd)
++            # Write command
++            self._write(cmd)
+ 
+-        (result, response) = async_result.get()
++            (result, response) = async_result.get()
+ 
+         if result is False:
+             raise ValueError("Failed to set GPS configuration")
+ 
+     def _gps_get(self, cmd):
+         # Prepare to read
+-        pool = ThreadPool(processes=1)
+-        msg = UBXMessage(cmd)
+-        async_result = pool.apply_async(self._read, (msg.class_id,))
++        with ThreadPool(processes=1) as pool:
++            msg = UBXMessage(cmd)
++            async_result = pool.apply_async(self._read, (msg.class_id,))
+ 
+-        # Write command
+-        self._write(cmd)
++            # Write command
++            self._write(cmd)
+ 
+-        (result, response) = async_result.get()
++            (result, response) = async_result.get()
+ 
+         if result is False:
+             raise ValueError("Failed to get GPS configuration")
