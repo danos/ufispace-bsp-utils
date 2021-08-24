@@ -1,3 +1,10 @@
+ufispace-bsp-utils (3.0.13-0vyatta6) unstable; urgency=medium
+
+  * gpsusb: avoid holding reference to thread pool (Bugfix: VRVDR-55658)
+  * gpsusb: compare responses as lists (Bugfix: VRVDR-55658)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Tue, 24 Aug 2021 15:23:06 -0400
+
 ufispace-bsp-utils (3.0.13-0vyatta5) unstable; urgency=medium
 
   [ Thomas Kiely ]
