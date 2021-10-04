@@ -1,3 +1,9 @@
+ufispace-bsp-utils (3.0.13-0vyatta3.1) unstable; urgency=medium
+
+  * gpsusb: compare responses as lists (Bugfix: VRVDR-55658, VRVDR-56220)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Mon, 04 Oct 2021 10:55:59 -0400
+
 ufispace-bsp-utils (3.0.13-0vyatta3) unstable; urgency=medium
 
   * udev: block modemmanager from the GPS (Bugfix: VRVDR-53325)
