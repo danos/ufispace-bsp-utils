@@ -1,12 +1,31 @@
 --- a/utils/python/timing/gpsusb.py
 +++ b/utils/python/timing/gpsusb.py
-@@ -145,7 +145,8 @@ class GPSUSB:
-                 elif msg.class_id.tolist() == ubx_utils.CLASS_ACK_NAK:
+@@ -139,13 +139,14 @@ class GPSUSB:
+                     continue
+ 
+                 msg = UBXMessage(resp)
+-                if msg.class_id.tolist() == ubx_utils.CLASS_ACK_ACK:
++                if msg.class_id == ubx_utils.CLASS_ACK_ACK:
+                     ack = True
+                     read = False
+-                elif msg.class_id.tolist() == ubx_utils.CLASS_ACK_NAK:
++                elif msg.class_id == ubx_utils.CLASS_ACK_NAK:
                      ack = False
                      read = False
 -                elif msg.class_id.tolist() == class_id:
-+                elif msg.class_id.tolist() == class_id.tolist():
++                elif msg.class_id == class_id:
 +                    ack = True
                      response = msg.getMessage()
                      read = False
              except:
+--- a/utils/python/timing/ubx/ubx_message.py
++++ b/utils/python/timing/ubx/ubx_message.py
+@@ -25,7 +25,7 @@ class UBXMessage:
+     payload = []
+ 
+     def __init__(self, msg):
+-        self.class_id = msg[2:4]
++        self.class_id = [ msg[2], msg[3] ]
+         self.length = msg[4]+(msg[5]<<8)
+         self.payload = msg[6:(6+self.length)]
+         pass
