@@ -1,3 +1,9 @@
+ufispace-bsp-utils (3.0.13-0vyatta7) unstable; urgency=medium
+
+  * ubx_message: handle class_id consistently (Bugfix: VRVDR-56119)
+
+ -- Charles (Chas) Williams <ciwillia@vyatta.att-mail.com>  Tue, 19 Oct 2021 10:30:25 -0400
+
 ufispace-bsp-utils (3.0.13-0vyatta6) unstable; urgency=medium
 
   * gpsusb: avoid holding reference to thread pool (Bugfix: VRVDR-55658)
