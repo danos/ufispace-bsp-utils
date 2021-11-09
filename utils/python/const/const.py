@@ -61,3 +61,6 @@ class CPLDConst(IntEnum):
 class LPMode(IntEnum):
     DISABLE = 0
     ENABLE = 1
+
+class SWLock:
+    I2C_LOCK_PATH = "/tmp/i2c-lock"

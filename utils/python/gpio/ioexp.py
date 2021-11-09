@@ -21,6 +21,7 @@ import time
 
 from common.logger import Logger
 from smbus import SMBus
+from common.i2clock import shared_i2clock
 
 class PCA953x:
 
@@ -631,6 +632,7 @@ class IOExpander:
         except Exception as e:
             raise
 
+    @shared_i2clock
     def qsfp_get_presence(self, port_num):
         try:
             bus = SMBus(0)
@@ -661,6 +663,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def qsfp_set_lp_mode(self, port_num, cfg):
         try:
             bus = SMBus(0)
@@ -699,6 +702,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def qsfp_get_lp_mode(self, port_num):
         try:
             bus = SMBus(0)
@@ -729,6 +733,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def qsfp_reset_port(self, port_num):
         try:
             bus = SMBus(0)
@@ -763,6 +768,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def sfp_get_presence(self, port_num):
         try:
             bus = SMBus(0)
@@ -800,6 +806,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def sfp_get_rx_lost(self, port_num):
         try:
             bus = SMBus(0)
@@ -837,6 +844,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def sfp_get_tx_flt(self, port_num):
         try:
             bus = SMBus(0)
@@ -874,6 +882,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def sfp_set_port_rate(self, port_num, cfg):
         try:
             bus = SMBus(0)
@@ -931,6 +940,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def sfp_get_port_rate(self, port_num):
         try:
             bus = SMBus(0)
@@ -967,7 +977,8 @@ class IOExpander:
                      
             if bus != None:
                 bus.close()
-                
+
+    @shared_i2clock
     def sfp_set_port_status(self, port_num, cfg):
         try:
             bus = SMBus(0)
@@ -1024,7 +1035,8 @@ class IOExpander:
                      
             if bus != None:
                 bus.close()
-               
+
+    @shared_i2clock               
     def sfp_get_port_status(self, port_num):
         try:
             bus = SMBus(0)
@@ -1061,7 +1073,8 @@ class IOExpander:
                      
             if bus != None:
                 bus.close()
-                
+
+    @shared_i2clock                
     def bmc_reset_set(self, input_target):
         try:
             bus = SMBus(0)
@@ -1108,7 +1121,8 @@ class IOExpander:
                      
             if bus != None:
                 bus.close()
-    
+
+    @shared_i2clock    
     def rov_get_voltage(self):
         try:
             bus = SMBus(0)
@@ -1142,6 +1156,7 @@ class IOExpander:
             if bus != None:
                 bus.close()
 
+    @shared_i2clock
     def rov_set_voltage(self, rov):
         try:
             bus = SMBus(0)
@@ -1174,7 +1189,8 @@ class IOExpander:
                      
             if bus != None:
                 bus.close()
-            
+
+    @shared_i2clock        
     def bmc_reset_unset(self, input_target):
         try:
             bus = SMBus(0)

@@ -19,6 +19,7 @@ SYNC_CHAR = [0xB5, 0x62]
 CLASS_ACK_NAK = [0x05, 0x00]
 CLASS_ACK_ACK = [0x05, 0x01]
 CLASS_CFG_TP5 = [0x06, 0x31]
+CLASS_CFG_TM2 = [0x06, 0x3D]
 
 def cmdAckAck(class_id):
     ack = []

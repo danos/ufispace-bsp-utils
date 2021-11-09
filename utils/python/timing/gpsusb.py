@@ -36,6 +36,7 @@ from timing.ubx.ubx_command import UBXCommand
 from timing.ubx.ubx_message import UBXMessage
 from timing.ubx.ubx_cfg_msg import UBX_CFG_MSG
 from timing.ubx.ubx_cfg_tp5 import UBX_CFG_TP5
+from timing.ubx.ubx_cfg_tm2 import UBX_CFG_TM2
 
 class GPSUSB:
 
@@ -129,8 +130,7 @@ class GPSUSB:
         ack = False
         response = None
 
-        read = True
-            
+        read = True           
         while read:
             try:
                 resp = ep.read(100)
@@ -218,6 +218,7 @@ class GPSUSB:
 
         # Wait for reponse message gone
         # (This code maybe can be removed. Just for safety)
+        time.sleep(0.01)
 
     def configureTimePulse2(self):
         self.configureTimePulse(UBXCommand.cmdCfgTP2)
@@ -248,5 +249,7 @@ class GPSUSB:
 
     def configureUart(self, cmd):
         result = self._gps_set(cmd)
-        
+
+    def configureTimeMode(self, cmd):
+        result = self._gps_set(cmd)        
 

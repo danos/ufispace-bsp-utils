@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ###########################################################################
-#Copyright 2019 Ufi Space Co.,Ltd.                                        #
+#Copyright 2021 Ufi Space Co.,Ltd.                                        #
 #                                                                         #
 #Licensed under the Apache License, Version 2.0 (the "License");          #
 #you may not use this file except in compliance with the License.         #
@@ -24,6 +24,8 @@ from gpio.ioexp import IOExpander
 from smbus import SMBus
 from cpld.cpld import CPLD
 from protocol.i2c import I2C
+from time import sleep
+from common.i2clock import exclusive_i2clock
 
 class DATA_INFO:
     SFP = {
@@ -188,6 +190,7 @@ class EEPRom:
     def init(self):
         pass
 
+    @exclusive_i2clock
     def dump_cpu_eeprom(self):
         try:
             # Get the bus number of sysfs
@@ -205,13 +208,15 @@ class EEPRom:
 
                 # Send device select code
                 # Proto and Alpha doesn't have parent MUX
-                hw_rev = self.cpld.get_hw_rev()
-                if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                    eeprom_addr = self.I2C_ADDR_EEPROM_Alpha_CPU 
-                elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                    eeprom_addr = self.I2C_ADDR_EEPROM_Alpha_CPU 
-                else:
-                    eeprom_addr = self.I2C_ADDR_EEPROM_Beta_CPU
+                # Update: now in PVT, we don't need this check in latest BSP
+                #hw_rev = self.cpld.get_hw_rev()
+                #if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
+                #    eeprom_addr = self.I2C_ADDR_EEPROM_Alpha_CPU 
+                #elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
+                #    eeprom_addr = self.I2C_ADDR_EEPROM_Alpha_CPU 
+                #else:
+                #    eeprom_addr = self.I2C_ADDR_EEPROM_Beta_CPU
+                eeprom_addr = self.I2C_ADDR_EEPROM_Beta_CPU
                     
                 bus.write_byte_data(eeprom_addr, (offset>>8)&0xff, offset&0xff)
                 for i in range(_len):
@@ -228,6 +233,7 @@ class EEPRom:
             if bus != None:
                 bus.close()
 
+    @exclusive_i2clock
     def dump_sfp_eeprom(self, port_num, page = None):
         try:
             bus = SMBus(0)
@@ -318,6 +324,7 @@ class EEPRom:
             if bus != None:
                 bus.close()
 
+    @exclusive_i2clock
     def dump_qsfp_eeprom(self, port_num, page = None):
         try:
             bus = SMBus(0)

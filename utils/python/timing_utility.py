@@ -219,3 +219,19 @@ class TimingUtility:
     def set_dpll_hitless_mode(self, dpll, mode):
         idt = IDT82P33831()
         idt.setDPLLHitlessMode(dpll, mode)
+
+    def set_gps_tm_surveyin(self, obtime, accuracy):
+        neo = NEOM8T()
+        neo.setGPSTimeMode_SurIn(obtime, accuracy)
+
+    def set_gps_tm_fixed(self, accuracy, x, y, z):
+        neo = NEOM8T()
+        neo.setGPSTimeMode_Fixed(accuracy, x, y, z)
+        
+    def set_gps_tm_disable(self):
+        neo = NEOM8T()
+        neo.setGPSTimeMode_Disable()
+        
+    def get_gps_timemode(self):
+        neo = NEOM8T()
+        neo.getGPSTimeMode()

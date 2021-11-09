@@ -27,6 +27,7 @@ import time
 from common.logger import Logger
 from timing.gpsusb import GPSUSB
 from timing.ubx.ubx_cfg_tp5 import UBX_CFG_TP5
+from timing.ubx.ubx_cfg_tm2 import UBX_CFG_TM2
 
 TIMEPULSE1 = 0
 TIMEPULSE2 = 1
@@ -81,5 +82,23 @@ class NEOM8T:
         usb_dev = GPSUSB()
         usb_dev.enable()
         usb_dev.configureUartTod()
+        
+    def setGPSTimeMode_SurIn(self, obtime, accuracy):
+        usb_dev = GPSUSB()
+        usb_dev.enable()
+        tmCmd = UBX_CFG_TM2()
+        usb_dev.configureTimeMode(tmCmd.setSurInPayload(tmCmd.timeModeCmd(),obtime, accuracy))
+        
+    def setGPSTimeMode_Fixed(self, accuracy, x, y, z):
+        usb_dev = GPSUSB()
+        usb_dev.enable()
+        tmCmd = UBX_CFG_TM2()
+        usb_dev.configureTimeMode(tmCmd.setFixedDelayPayload(tmCmd.timeModeCmd(),accuracy, x, y, z))
+       
+    def setGPSTimeMode_Disable(self):
+        usb_dev = GPSUSB()
+        usb_dev.enable()
+        tmCmd = UBX_CFG_TM2()
+        usb_dev.configureTimeMode(tmCmd.setSDisablePayload(tmCmd.timeModeCmd()))
 
 

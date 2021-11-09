@@ -27,6 +27,7 @@ from cpld.cpld_reg import CPLDCPUReg
 from protocol.lpc import LPC
 from protocol.lpc import LPCDevType
 from smbus import SMBus
+from common.i2clock import shared_i2clock
 
 class PCA9535_CMD:
     
@@ -171,11 +172,12 @@ class CPLD:
         pass
 
     ########## FOR CPLD UTILITY ##########
+    @shared_i2clock
     def check_hw_rev_mux(self):
         try:
             bus = SMBus(0)
             
-            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0) 
+            bus.write_byte_data(self.I2C_ADDR_9546_ROOT, 0x0, 0x0)
             
             return "EXIST"
         except Exception as e:
@@ -184,7 +186,8 @@ class CPLD:
         finally:
             if bus != None:
                 bus.close()     
-                
+
+    @shared_i2clock            
     def get_brd_id_info(self):
         try:
             bus = SMBus(0)

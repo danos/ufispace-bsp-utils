@@ -21,6 +21,7 @@ import time
 from smbus import SMBus
 from common.logger import Logger
 from cpld.cpld import CPLD
+from common.i2clock import shared_i2clock
 
 '''
 This class should be re-factor when it's too complicated to maintain.
@@ -644,7 +645,8 @@ class DPLLSingleRegister(DPLLRegister):
         self.page = page
         self.register = register
         self.cpld = CPLD()
-
+    
+    @shared_i2clock
     def setConfiguration(self, data):
         try:
             bus = SMBus(self.BUS)
@@ -679,6 +681,7 @@ class DPLLSingleRegister(DPLLRegister):
                 
             bus.close()
 
+    @shared_i2clock
     def getConfiguration(self):
         try:
             bus = SMBus(self.BUS)
@@ -725,6 +728,7 @@ class DPLLMultiRegister(DPLLRegister):
         self.length = length
         self.cpld = CPLD()
 
+    @shared_i2clock
     def setConfiguration(self, data):
         # TODO: Check if data is list with right length
         try:
@@ -761,6 +765,7 @@ class DPLLMultiRegister(DPLLRegister):
                 
             bus.close()
 
+    @shared_i2clock
     def getConfiguration(self):
         data = []
         try:
@@ -810,6 +815,7 @@ class APLLRegister:
         self.cpld = CPLD()
         pass
 
+    @shared_i2clock
     def setConfiguration(self, data):
         try:
             bus = SMBus(self.BUS)
@@ -842,6 +848,7 @@ class APLLRegister:
                 
             bus.close()
 
+    @shared_i2clock
     def getConfiguration(self):
         try:
             bus = SMBus(self.BUS)
