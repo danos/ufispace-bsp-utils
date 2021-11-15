@@ -10,3 +10,4 @@ bsp-util-timing-grammar.patch
 fix-missing-import-eeprom.patch
 use-with-to-drop-references.patch
 gpsusb-compare-lists-correctly.patch
+allow-longer-gnss-responses.patch

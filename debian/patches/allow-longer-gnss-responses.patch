@@ -1,0 +1,20 @@
+--- a/utils/python/timing/gpsusb.py
++++ b/utils/python/timing/gpsusb.py
+@@ -133,7 +133,7 @@ class GPSUSB:
+             
+         while read:
+             try:
+-                resp = ep.read(100)
++                resp = ep.read(500)
+                 self.logger.debug("GPS read: %s", resp)
+                 if len(resp) == 0:
+                     continue
+@@ -174,7 +174,7 @@ class GPSUSB:
+         read = True
+         while read:
+             try:
+-                resp = ep.read(100)
++                resp = ep.read(500)
+                 #self.logger.debug(resp)
+             except:
+                 # Continuous read until timeout
