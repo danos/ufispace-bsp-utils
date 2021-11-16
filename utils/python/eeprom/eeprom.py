@@ -26,6 +26,7 @@ from cpld.cpld import CPLD
 from protocol.i2c import I2C
 from time import sleep
 from common.i2clock import exclusive_i2clock
+from common.i2clock import shared_i2clock
 
 class DATA_INFO:
     SFP = {
@@ -190,7 +191,7 @@ class EEPRom:
     def init(self):
         pass
 
-    @exclusive_i2clock
+    @shared_i2clock
     def dump_cpu_eeprom(self):
         try:
             # Get the bus number of sysfs

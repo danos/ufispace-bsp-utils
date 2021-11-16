@@ -40,6 +40,7 @@ def exclusive_i2clock(fn):
                 break
             except:
                 if count == max_retry:
+                    fd.close()
                     raise Exception("Cannot acquire I2C exclude lock after 10s retry")
                 sleep(wait_interval)
         try:

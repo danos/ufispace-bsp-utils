@@ -654,15 +654,7 @@ class DPLLSingleRegister(DPLLRegister):
             raise
 
         try:
-            # Proto and Alpha doesn't have parent MUX
-            hw_rev = self.cpld.get_hw_rev()
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
 
             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
             bus.write_byte_data(DPLLRegister.ADDR, self.register, data)
@@ -670,14 +662,7 @@ class DPLLSingleRegister(DPLLRegister):
         except:
             raise
         finally:
-            # Proto and Alpha doesn't have parent MUX
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
                 
             bus.close()
 
@@ -689,15 +674,7 @@ class DPLLSingleRegister(DPLLRegister):
             raise
 
         try:
-            # Proto and Alpha doesn't have parent MUX
-            hw_rev = self.cpld.get_hw_rev()
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
                 
             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
             b = bus.read_byte_data(DPLLRegister.ADDR, self.register)
@@ -707,14 +684,7 @@ class DPLLSingleRegister(DPLLRegister):
         except:
             raise
         finally:
-            # Proto and Alpha doesn't have parent MUX
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
                 
             bus.close()
 
@@ -737,15 +707,7 @@ class DPLLMultiRegister(DPLLRegister):
             raise
 
         try:
-            # Proto and Alpha doesn't have parent MUX
-            hw_rev = self.cpld.get_hw_rev()
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
                 
             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
             for idx, datum in enumerate(data):
@@ -754,14 +716,7 @@ class DPLLMultiRegister(DPLLRegister):
         except:
             raise
         finally:
-            # Proto and Alpha doesn't have parent MUX
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
                 
             bus.close()
 
@@ -774,15 +729,7 @@ class DPLLMultiRegister(DPLLRegister):
             raise
 
         try:
-            # Proto and Alpha doesn't have parent MUX
-            hw_rev = self.cpld.get_hw_rev()
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
                 
             bus.write_byte_data(DPLLRegister.ADDR, DPLLRegister.PAGE, self.page)
             for idx in range(0, self.length):
@@ -793,14 +740,7 @@ class DPLLMultiRegister(DPLLRegister):
         except:
             raise
         finally:
-            # Proto and Alpha doesn't have parent MUX
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
                 
             bus.close()
 
@@ -823,28 +763,13 @@ class APLLRegister:
             raise
 
         try:
-            # Proto and Alpha doesn't have parent MUX
-            hw_rev = self.cpld.get_hw_rev()
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
                 
             bus.write_byte_data(APLLRegister.ADDR, self.register, data)
         except:
             raise
         finally:
-            # Proto and Alpha doesn't have parent MUX
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
                 
             bus.close()
 
@@ -856,15 +781,7 @@ class APLLRegister:
             raise
 
         try:
-            # Proto and Alpha doesn't have parent MUX
-            hw_rev = self.cpld.get_hw_rev()
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, DPLLRegister.IDT82P33831_CHANL)
                 
             b = bus.read_byte_data(APLLRegister.ADDR, self.register)
 
@@ -872,13 +789,6 @@ class APLLRegister:
         except:
             raise
         finally:
-            # Proto and Alpha doesn't have parent MUX
-            if hw_rev == self.cpld.HARDWARE_REV_PROTO_STR:
-                pass 
-            elif hw_rev == self.cpld.HARDWARE_REV_ALPHA_STR:
-                pass 
-            else:
-                # Enable the channel of PCA9546
-                bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
+            bus.write_byte_data(DPLLRegister.I2C_ADDR_MUX_9546, 0x0, 0x0)
                 
             bus.close()
